@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>FF Königsbrunn - Pro Center</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <style>
+        :root { 
+            --s1: #42a5f5; --s2: #66bb6a; --s3: #fdd835; --s4: #ef5350;
+            --bg: #1a1c23; --card: #282c34; --accent: #e53935; --text: #e0e0e0;
+        }
+        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; overflow: hidden; height: 100vh; }
+        
+        /* Startbildschirm & Menü Overlay */
+        #start-screen, #ingame-menu {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(18, 20, 26, 0.95);
+            z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        #ingame-menu { display: none; background: rgba(0, 0, 0, 0.85); }
+
+        .menu-box { background: var(--card); padding: 25px; border-radius: 12px; border: 2px solid var(--accent); text-align: center; width: 85%; max-width: 350px; }
+        .setting-row { display: flex; justify-content: space-between; align-items: center; margin: 15px 0; padding: 10px; background: #333; border-radius: 8px; }
+        
+        /* Toggle Switch */
+        .switch { position: relative; display: inline-block; width: 44px; height: 22px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #555; transition: .4s; border-radius: 22px; }
+        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--s2); }
+        input:checked + .slider:before { transform: translateX(22px); }
+
+        .btn { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
+        .btn-sec { background: #555; }
+
+        /* Game UI */
+        header { background: #12141a; padding: 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--accent); }
+        #menu-trigger { background: none; border: none; color: white; font-size: 1.5em; cursor: pointer; padding: 0 10px; }
+        
+        .level-container { padding: 5px 15px; background: #12141a; font-size: 0.75em; display: flex; justify-content: space-between; align-items: center; }
+        .xp-track { flex-grow: 1; height: 5px; background: #333; margin: 0 10px; border-radius: 3px; overflow: hidden; }
+        #xp-fill { height: 100%; background: var(--s3); width: 0%; transition: 0.5s; }
+
+        .status-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; background: #000; padding: 5px; }
+        .v-stat { font-size: 0.6em; text-align: center; padding: 4px 0; border-radius: 3px; background: var(--s2); color: #000; font-weight: bold; }
+        .v-stat.s1 { background: var(--s1); color: #fff; }
+        .v-stat.s3 { background: var(--s3); }
+        .v-stat.s4 { background: var(--s4); color: #fff; }
+
+        #map { position: relative; width: 100%; height: 110px; background: #242b24; border-bottom: 1px solid #444; }
+        .marker { position: absolute; width: 18px; height: 18px; background: var(--accent); border-radius: 50%; border: 2px solid white; display: none; transform: translate(-50%, -50%); z-index: 10; font-size: 10px; font-weight: bold; color: white; align-items: center; justify-content: center; }
+
+        #mission-area { flex-grow: 1; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+        .m-card { background: var(--card); border-radius: 8px; padding: 10px; border: 1px solid #3e4451; }
+        .m-card.active-sel { border: 2px solid var(--s1); }
+
+        .garage-area { background: #12141a; padding: 8px; border-top: 1px solid #333; }
+        .btn-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+        .v-btn { background: #3a3f4b; color: white; border: none; padding: 10px 0; border-radius: 5px; font-size: 0.75em; font-weight: bold; }
+        .v-btn.selected { background: var(--s1); }
+        #dispatch-btn { width: 100%; margin-top: 8px; background: var(--accent); color: white; border: none; padding: 14px; border-radius: 6px; font-weight: bold; text-transform: uppercase; }
+        #log { background: #000; color: #4caf50; height: 35px; font-family: monospace; font-size: 0.6em; padding: 5px 10px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+
+<div id="start-screen">
+    <div class="menu-box">
+        <h1>FF KÖNIGSBRUNN</h1>
+        <div class="setting-row">
+            <span>Sound & Funk</span>
+            <label class="switch">
+                <input type="checkbox" id="audio-init" checked>
+                <span class="slider"></span>
+            </label>
+        </div>
+        <button class="btn" onclick="startGame()">DIENST ANTRETEN</button>
+    </div>
+</div>
+
+<div id="ingame-menu">
+    <div class="menu-box">
+        <h2>EINSTELLUNGEN</h2>
+        <div class="setting-row">
+            <span>Sound aktiv</span>
+            <label class="switch">
+                <input type="checkbox" id="audio-live" onchange="toggleAudio(this.checked)">
+                <span class="slider"></span>
+            </label>
+        </div>
+        <button class="btn" onclick="closeMenu()">ZURÜCK ZUM FUNK</button>
+        <button class="btn btn-sec" onclick="location.reload()">BEENDEN</button>
+    </div>
+</div>
+
+<div id="main-game" style="display:none; flex-direction:column; height: 100vh;">
+    <header>
+        <span style="font-weight:bold; color:var(--accent); font-size:0.9em;">LEITSTELLE KÖB</span>
+        <button id="menu-trigger" onclick="openMenu()">⚙️</button>
+    </header>
+    
+    <div class="level-container">
+        <span id="rank-name">ANWÄRTER</span>
+        <div class="xp-track"><div id="xp-fill"></div></div>
+        <span>LVL <b id="lvl-num">1</b></span>
+    </div>
+
+    <div class="status-grid" id="stat-bar"></div>
+    
+    <div id="map">
+        <div id="dot-0" class="marker">1</div>
+        <div id="dot-1" class="marker">2</div>
+    </div>
+
+    <div id="mission-area"></div>
+    <div id="log">>> Funkkreis bereit...</div>
+
+    <div class="garage-area">
+        <div class="btn-grid" id="garage"></div>
+        <button id="dispatch-btn" onclick="execute()">Einsatz Bestätigen</button>
+    </div>
+</div>
+
+<script>
+    const vehicles = ["10/1", "12/1", "65/1", "40/1", "40/2", "30/1", "41/1", "62/1", "21/1"];
+    let states = {}; let activeMissions = [];
+    let xp = 0, lvl = 1, currentVehicles = [];
+    let selectedId = null;
+    let audioEnabled = true;
+    let audioCtx;
+
+    const db = [
+        { t: "Zimmerbrand", r: ["12/1", "40/1", "30/1"], xp: 150, msg: "Zimmerbrand im Obergeschoss." },
+        { t: "Person in Aufzug", r: ["40/1"], xp: 70, msg: "Person in Aufzug eingeschlossen." },
+        { t: "Verkehrsunfall", r: ["10/1", "40/1", "62/1"], xp: 180, msg: "VU auf der B-17." },
+        { t: "Kellerbrand", r: ["12/1", "40/1", "41/1"], xp: 160, msg: "Starke Rauchentwicklung aus Keller." }
+    ];
+
+    function startGame() {
+        audioEnabled = document.getElementById('audio-init').checked;
+        document.getElementById('audio-live').checked = audioEnabled;
+        if (audioEnabled) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        document.getElementById('start-screen').style.display = 'none';
+        document.getElementById('main-game').style.display = 'flex';
+        setInterval(trigger, 22000);
+        trigger();
+    }
+
+    function openMenu() { document.getElementById('ingame-menu').style.display = 'flex'; }
+    function closeMenu() { document.getElementById('ingame-menu').style.display = 'none'; }
+    function toggleAudio(val) { 
+        audioEnabled = val; 
+        if(val && !audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+
+    function playTone(freq, type, duration, vol) {
+        if(!audioEnabled || !audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + duration);
+    }
+
+    function radioSpeech(text) {
+        if(!audioEnabled) return;
+        const s = new SpeechSynthesisUtterance(text + " Kommen.");
+        s.lang = 'de-DE'; window.speechSynthesis.speak(s);
+    }
+
+    vehicles.forEach(v => {
+        states[v] = 2;
+        document.getElementById('stat-bar').innerHTML += `<div class="v-stat" id="s-${v}">${v}:2</div>`;
+        document.getElementById('garage').innerHTML += `<button class="v-btn" id="b-${v}" onclick="tapV('${v}')">${v}</button>`;
+    });
+
+    function tapV(v) {
+        if(states[v] !== 2) return;
+        if(currentVehicles.includes(v)) {
+            currentVehicles = currentVehicles.filter(x => x !== v);
+            document.getElementById('b-'+v).classList.remove('selected');
+        } else {
+            currentVehicles.push(v);
+            document.getElementById('b-'+v).classList.add('selected');
+        }
+    }
+
+    function trigger() {
+        if(activeMissions.length >= 2) return;
+        const free = Object.keys(states).filter(v => states[v] === 2);
+        const avail = db.filter(m => m.r.every(req => free.includes(req)));
+        if(avail.length === 0) return;
+
+        const m = {...avail[Math.floor(Math.random() * avail.length)], id: Math.random()};
+        m.x = (20 + Math.random() * 60) + "%"; m.y = (20 + Math.random() * 50) + "%";
+        activeMissions.push(m);
+        refreshUI();
+        playTone(880, 'square', 0.4, 0.05);
+        setTimeout(() => radioSpeech("Alarm für Königsbrunn. " + m.msg), 1000);
+    }
+
+    function refreshUI() {
+        const area = document.getElementById('mission-area');
+        area.innerHTML = activeMissions.length === 0 ? '<div style="text-align:center; padding-top:20px; color:#555;">Warten auf Notruf...</div>' : '';
+        activeMissions.forEach((m, i) => {
+            const div = document.createElement('div');
+            div.className = `m-card ${selectedId === m.id ? 'active-sel' : ''}`;
+            div.onclick = () => { selectedId = m.id; refreshUI(); };
+            div.innerHTML = `<h3>${m.t}</h3><span style="font-size:0.7em;color:var(--s3)">Bedarf: ${m.r.join(", ")}</span>`;
+            area.appendChild(div);
+            const dot = document.getElementById('dot-' + i);
+            if(dot) { dot.style.left = m.x; dot.style.top = m.y; dot.style.display = "flex"; }
+        });
+        [0,1].forEach(i => { if(i >= activeMissions.length) document.getElementById('dot-'+i).style.display="none"; });
+        vehicles.forEach(v => document.getElementById('b-'+v).disabled = (states[v] !== 2));
+    }
+
+    function execute() {
+        if(selectedId === null || currentVehicles.length === 0) return;
+        const mIdx = activeMissions.findIndex(m => m.id === selectedId);
+        const m = activeMissions[mIdx];
+        const vList = [...currentVehicles];
+        const success = m.r.every(req => vList.includes(req));
+
+        selectedId = null; currentVehicles = [];
+        document.querySelectorAll('.v-btn').forEach(b => b.classList.remove('selected'));
+
+        vList.forEach(v => { updS(v, 3); playTone(1000, 'sine', 0.1, 0.03); });
+        log("S3: " + m.t);
+
+        setTimeout(() => {
+            vList.forEach(v => { updS(v, 4); playTone(1000, 'sine', 0.1, 0.03); });
+            log("S4: " + m.t);
+            setTimeout(() => {
+                activeMissions.splice(mIdx, 1); refreshUI();
+                if(success) {
+                    xp += m.xp; 
+                    if(xp >= lvl*400) { lvl++; xp=0; radioSpeech("Beförderung erfolgreich."); }
+                    document.getElementById('lvl-num').innerText = lvl;
+                    document.getElementById('xp-fill').style.width = (xp/(lvl*400)*100) + "%";
+                }
+                vList.forEach(v => updS(v, 1));
+                setTimeout(() => { vList.forEach(v => updS(v, 2)); refreshUI(); }, 7000);
+            }, 8000);
+        }, 3000);
+    }
+
+    function updS(v, s) {
+        states[v] = s;
+        const el = document.getElementById('s-'+v);
+        if(el) {
+            el.innerText = `${v}:${s}`;
+            el.className = "v-stat " + (s===1?'s1':s===3?'s3':s===4?'s4':'');
+        }
+    }
+
+    function log(msg) {
+        const l = document.getElementById('log');
+        l.innerHTML = `<div>> ${msg}</div>` + l.innerHTML;
+        l.scrollTop = 0;
+    }
+</script>
+</body>
+</html>
