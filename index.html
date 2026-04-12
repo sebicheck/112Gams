@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ILS Königsbrunn - Settings Update</title>
+    <title>ILS Königsbrunn - Realismus Modus</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         :root { 
             --s1: #42a5f5; --s2: #66bb6a; --s3: #fdd835; --s4: #ef5350;
@@ -12,32 +13,34 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
         html, body { height: 100%; width: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: sans-serif; }
 
-        /* SETTINGS MODAL */
+        /* SETTINGS MODAL (Wieder wie davor) */
         #settings-overlay {
             position: fixed; inset: 0; background: rgba(0,0,0,0.85);
             display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 10000;
         }
-        .settings-card { background: var(--sidebar); padding: 25px; border-radius: 15px; border: 1px solid #444; width: 85%; max-width: 320px; }
-        .settings-row { margin: 20px 0; display: flex; flex-direction: column; gap: 10px; }
+        .settings-card { background: var(--sidebar); padding: 25px; border-radius: 15px; border: 1px solid #444; width: 85%; max-width: 320px; text-align: center; }
+        .settings-row { margin: 20px 0; display: flex; flex-direction: column; gap: 10px; text-align: left; }
         input[type=range] { width: 100%; accent-color: var(--accent); }
-        .close-settings { background: var(--accent); color: white; border: none; padding: 10px; width: 100%; border-radius: 8px; font-weight: bold; margin-top: 10px; }
+        .close-settings { background: var(--accent); color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; font-weight: bold; margin-top: 10px; cursor: pointer; }
 
         /* UI ELEMENTS */
-        header { background: var(--sidebar); padding: 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--accent); }
-        #settings-btn { background: none; border: none; font-size: 20px; cursor: pointer; padding: 5px; }
+        header { background: var(--sidebar); padding: 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--accent); position: relative; z-index: 1001; }
+        .top-info { background: #12141a; padding: 6px 12px; display: flex; justify-content: space-between; font-size: 0.75em; border-bottom: 1px solid #333; position: relative; z-index: 1001; }
         
-        #map { height: 18vh; background: #1b211b; position: relative; border-bottom: 1px solid #333; }
-        .marker { position: absolute; width: 22px; height: 22px; background: var(--accent); border-radius: 50%; border: 2px solid white; transform: translate(-50%, -50%); display: none; align-items: center; justify-content: center; font-weight: bold; font-size: 11px; z-index: 10; }
+        #map { height: 22vh; width: 100%; filter: grayscale(1) invert(1) contrast(1.2); border-bottom: 1px solid #333; }
 
         #radio-log { height: 70px; background: #000; color: #4caf50; font-family: monospace; font-size: 0.7em; padding: 8px; overflow-y: hidden; border-bottom: 1px solid #333; }
+        
         #mission-area { flex-grow: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; background: #14161e; }
-        .m-card { background: var(--sidebar); border-radius: 10px; padding: 12px; border: 1px solid #333; }
+        .m-card { background: var(--sidebar); border-radius: 10px; padding: 12px; border: 1px solid #333; border-left: 4px solid var(--accent); }
         .m-card.selected { border-color: var(--s1); background: #252833; }
+        .m-address { font-size: 0.75em; color: #aaa; display: block; margin-top: 4px; }
 
-        .bottom-ui { flex-shrink: 0; background: var(--sidebar); padding: 10px; padding-bottom: 25px; }
+        .bottom-ui { flex-shrink: 0; background: var(--sidebar); padding: 10px; padding-bottom: 25px; border-top: 1px solid #333; }
         .garage { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 10px; }
         .v-btn { background: #2c2f3a; border: none; color: white; padding: 14px 0; border-radius: 8px; font-size: 0.8em; font-weight: bold; position: relative; }
-        .v-btn.selected { background: var(--s1); border: 1px solid white; }
+        .v-btn.selected { background: var(--s1); outline: 2px solid white; }
+        .v-btn span { position: absolute; top: -4px; right: -4px; background: #444; border-radius: 50%; width: 16px; height: 16px; font-size: 9px; display: flex; align-items: center; justify-content: center; border: 1px solid #fff; }
 
         #send-btn { width: 100%; padding: 16px; border-radius: 10px; border: none; background: var(--accent); color: white; font-weight: bold; }
         
@@ -57,12 +60,17 @@
             
             <div class="settings-row">
                 <label>Ton: <span id="sound-status">AN</span></label>
-                <button id="toggle-sound" onclick="toggleAudio()" style="padding:8px; border-radius:5px; border:none; background:#444; color:white;">Ton Umschalten</button>
+                <button onclick="toggleAudio()" style="padding:8px; border-radius:5px; border:none; background:#444; color:white;">Ton Umschalten</button>
             </div>
 
             <div class="settings-row">
-                <label>Einsatz-Häufigkeit: <br><small id="freq-label">Mittel (60s)</small></label>
-                <input type="range" id="freq-range" min="10" max="300" value="60" oninput="updateFreqLabel(this.value)">
+                <label>Häufigkeit: <small id="freq-label">60s</small></label>
+                <input type="range" min="10" max="300" value="60" oninput="updateFreq(this.value)">
+            </div>
+
+            <div class="settings-row">
+                <label>Gleichzeitige Einsätze: <small id="limit-label">3</small></label>
+                <input type="range" min="1" max="10" value="3" oninput="updateLimit(this.value)">
             </div>
 
             <button class="close-settings" onclick="closeSettings()">Speichern & Schließen</button>
@@ -71,23 +79,17 @@
 
     <header>
         <span style="font-weight:900;">ILS KÖNIGSBRUNN</span>
-        <button id="settings-btn" onclick="openSettings()">⚙️</button>
+        <button onclick="openSettings()" style="background:none; border:none; font-size:20px; cursor:pointer;">⚙️</button>
     </header>
 
-    <div style="background: #12141a; padding: 5px 12px; font-size: 0.75em; display:flex; justify-content:space-between; border-bottom:1px solid #333;">
+    <div class="top-info">
         <span>👩‍🚒 <span id="staff-count">45</span></span>
         <span style="color:#ffca28">💰 <span id="money-count">0</span> €</span>
         <span>LVL <b id="lvl">1</b></span>
     </div>
 
-    <div id="map">
-        <div id="dot0" class="marker">1</div>
-        <div id="dot1" class="marker">2</div>
-        <div id="dot2" class="marker">3</div>
-    </div>
-
-    <div id="radio-log"><div>> Funk bereit.</div></div>
-
+    <div id="map"></div>
+    <div id="radio-log"><div>> Funkkreis Königsbrunn bereit.</div></div>
     <div id="mission-area"></div>
 
     <div class="bottom-ui">
@@ -95,11 +97,20 @@
         <button id="send-btn" onclick="execute()">Einsatz senden</button>
     </div>
 
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        let audioCtx, audioEnabled = true, missionDelay = 60000;
+        let map, audioCtx, audioEnabled = true, missionDelay = 60000, maxMissions = 3;
         let activeMissions = [], selectedVehicles = [], selectedMissionId = null;
         let xp = 0, lvl = 1, staffCurrent = 45, money = 0;
         let missionTimer;
+
+        const streets = ["Bgm.-Wohlfarth-Str.", "Landsberger Str.", "Wertachstr.", "Haunstetter Str.", "Gartenstr.", "Finkenweg", "Heidestr.", "Gewerbestr."];
+        const missionPool = [
+            { t: "Keller unter Wasser", staff: 3, xp: 50, reward: 50, duration: 60000 },
+            { t: "Baum auf Straße", staff: 6, xp: 70, reward: 80, duration: 45000 },
+            { t: "Zimmerbrand", staff: 15, xp: 300, reward: 400, duration: 150000 },
+            { t: "VU Person klemmt", staff: 18, xp: 400, reward: 500, duration: 200000 }
+        ];
 
         const vehicles = {
             "10/1": { staff: 2, status: 2 }, "12/1": { staff: 3, status: 2 },
@@ -109,20 +120,14 @@
             "21/1": { staff: 6, status: 2 }
         };
 
-        const missionPool = [
-            { t: "Keller unter Wasser", staff: 3, xp: 50, reward: 50, duration: 60000 },
-            { t: "Baum auf Straße", staff: 6, xp: 70, reward: 80, duration: 45000 },
-            { t: "Zimmerbrand", staff: 15, xp: 300, reward: 400, duration: 150000 },
-            { t: "VU Person klemmt", staff: 18, xp: 400, reward: 500, duration: 200000 }
-        ];
-
         function startGame() {
+            map = L.map('map', { zoomControl: false }).setView([48.268, 10.891], 14);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             document.getElementById('start-overlay').style.display = 'none';
             scheduleNext();
         }
 
-        // EINSTELLUNGEN LOGIK
         function openSettings() { document.getElementById('settings-overlay').style.display = 'flex'; }
         function closeSettings() { 
             document.getElementById('settings-overlay').style.display = 'none';
@@ -133,16 +138,20 @@
             audioEnabled = !audioEnabled;
             document.getElementById('sound-status').innerText = audioEnabled ? "AN" : "AUS";
         }
-        function updateFreqLabel(val) {
+        function updateFreq(val) {
             missionDelay = val * 1000;
-            document.getElementById('freq-label').innerText = val < 30 ? "Stress ("+val+"s)" : val > 180 ? "Sehr ruhig ("+val+"s)" : "Normal ("+val+"s)";
+            document.getElementById('freq-label').innerText = val + "s";
+        }
+        function updateLimit(val) {
+            maxMissions = parseInt(val);
+            document.getElementById('limit-label').innerText = val;
         }
 
         function scheduleNext() {
             missionTimer = setTimeout(() => {
-                triggerMission();
+                if(activeMissions.length < maxMissions) triggerMission();
                 scheduleNext();
-            }, missionDelay + (Math.random() * 10000));
+            }, missionDelay);
         }
 
         function playTone(freq, dur, vol) {
@@ -156,14 +165,22 @@
         }
 
         function triggerMission() {
-            if(activeMissions.length >= 3) return;
-            const m = {...missionPool[Math.floor(Math.random()*missionPool.length)], id: Math.random(), x: 15+Math.random()*70, y: 15+Math.random()*70};
+            const street = streets[Math.floor(Math.random() * streets.length)];
+            const nr = Math.floor(Math.random() * 80) + 1;
+            const lat = 48.268 + (Math.random() - 0.5) * 0.02;
+            const lng = 10.891 + (Math.random() - 0.5) * 0.02;
+
+            const m = {
+                ...missionPool[Math.floor(Math.random()*missionPool.length)],
+                id: Math.random(), address: street + " " + nr, lat: lat, lng: lng
+            };
+
+            m.marker = L.circleMarker([lat, lng], { color: 'red', radius: 10 }).addTo(map);
             activeMissions.push(m);
-            if(audioEnabled) { [1200, 900, 1200, 900, 1500].forEach((t, i) => setTimeout(() => playTone(t, 0.4, 0.05), i * 500)); }
+            if(audioEnabled) [1200, 900, 1200, 900, 1500].forEach((t, i) => setTimeout(() => playTone(t, 0.4, 0.05), i * 500));
             updateUI();
         }
 
-        // GARAGE INIT
         Object.keys(vehicles).forEach(v => {
             document.getElementById('garage').innerHTML += `<button class="v-btn" id="btn-${v}" onclick="toggleV('${v}')">${v} <span>${vehicles[v].staff}</span></button>`;
         });
@@ -182,17 +199,14 @@
 
         function updateUI() {
             const area = document.getElementById('mission-area');
-            area.innerHTML = activeMissions.length === 0 ? '<div style="text-align:center; padding:20px; color:#555;">Keine Einsätze.</div>' : '';
-            activeMissions.forEach((m, i) => {
+            area.innerHTML = activeMissions.length === 0 ? '<div style="text-align:center; padding:20px; color:#555;">Warten auf Notruf...</div>' : '';
+            activeMissions.forEach((m) => {
                 const div = document.createElement('div');
                 div.className = `m-card ${selectedMissionId === m.id ? 'selected' : ''}`;
-                div.onclick = () => { selectedMissionId = m.id; updateUI(); };
-                div.innerHTML = `<b>${m.t}</b><br><small>Bedarf: ${m.staff} Pers. | ~${Math.round(m.duration/60000)} Min.</small>`;
+                div.onclick = () => { selectedMissionId = m.id; map.setView([m.lat, m.lng], 15); updateUI(); };
+                div.innerHTML = `<b>${m.t}</b><span class="m-address">📍 ${m.address}</span>`;
                 area.appendChild(div);
-                const dot = document.getElementById('dot'+i);
-                dot.style.display = "flex"; dot.style.left = m.x+"%"; dot.style.top = m.y+"%";
             });
-            [0,1,2].forEach(i => { if(i >= activeMissions.length) document.getElementById('dot'+i).style.display="none"; });
             document.getElementById('staff-count').innerText = staffCurrent;
             document.getElementById('money-count').innerText = money;
             Object.keys(vehicles).forEach(v => {
@@ -219,17 +233,18 @@
             ve.forEach(v => vehicles[v].status = 3);
             updateUI();
 
-            setTimeout(() => { // ANFAHRT
+            setTimeout(() => {
                 ve.forEach(v => vehicles[v].status = 4);
                 updateUI();
-                setTimeout(() => { // EINSATZ
+                setTimeout(() => {
+                    map.removeLayer(m.marker);
                     activeMissions.splice(mIdx, 1);
                     money += m.reward;
                     xp += m.xp; if(xp >= lvl*500) { lvl++; xp=0; }
                     document.getElementById('lvl').innerText = lvl;
                     ve.forEach(v => vehicles[v].status = 1);
                     updateUI();
-                    setTimeout(() => { // RÜCKFAHRT
+                    setTimeout(() => {
                         ve.forEach(v => vehicles[v].status = 2);
                         staffCurrent += totalStaff;
                         updateUI();
