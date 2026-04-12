@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LST SIM - Beta 2.7</title>
+    <title>LST SIM - Beta 2.8 (Mobile UI Fix)</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         :root { 
@@ -13,9 +13,10 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; -webkit-tap-highlight-color: transparent; }
         
         body { 
-            height: 100vh; width: 100vw; overflow: hidden; 
+            /* NEU: 100dvh verhindert das Abschneiden durch die Handy-Adressleiste */
+            height: 100dvh; width: 100vw; overflow: hidden; 
             background: var(--bg); color: var(--text); 
-            display: flex; flex-direction: column; position: fixed; 
+            display: flex; flex-direction: column; 
         }
 
         #start-overlay { 
@@ -36,11 +37,15 @@
         .btn:active { transform: scale(0.98); }
         .btn:disabled { opacity: 0.5; cursor: not-allowed; border-bottom-width: 0; transform: none; }
 
-        header { background: var(--sidebar); padding: 12px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--accent); z-index: 1000; }
-        .top-status { background: #12141a; padding: 8px 15px; display: flex; justify-content: space-between; font-size: 0.8em; font-weight: bold; }
+        header { background: var(--sidebar); padding: 12px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--accent); z-index: 1000; flex-shrink: 0; }
+        .top-status { background: #12141a; padding: 8px 15px; display: flex; justify-content: space-between; font-size: 0.8em; font-weight: bold; flex-shrink: 0; }
         
-        #map { height: 25vh; width: 100%; filter: grayscale(1) invert(1) brightness(0.75); z-index: 10; }
-        #mission-area { flex-grow: 1; overflow-y: auto; padding: 12px; padding-bottom: 110px; -webkit-overflow-scrolling: touch; }
+        #map { height: 22vh; width: 100%; filter: grayscale(1) invert(1) brightness(0.75); z-index: 10; flex-shrink: 0; }
+        
+        #mission-area { 
+            flex-grow: 1; overflow-y: auto; padding: 12px; 
+            -webkit-overflow-scrolling: touch; 
+        }
         
         .m-card { 
             background: var(--sidebar); border-radius: 15px; padding: 15px; margin-bottom: 12px; 
@@ -55,7 +60,12 @@
         .m-reward { background: #12141a; color: var(--s2); font-size: 0.8em; font-weight: bold; padding: 4px 8px; border-radius: 8px; border: 1px solid #333; }
         .req-tag { background: #333; color: var(--s1); padding: 2px 6px; border-radius: 4px; font-size: 0.7em; font-weight: bold; margin-right: 4px; border: 1px solid #444; }
 
-        .bottom-nav { background: var(--sidebar); padding: 12px; border-top: 1px solid #333; z-index: 2000; }
+        .bottom-nav { 
+            background: var(--sidebar); 
+            /* NEU: Flex-Shrink 0 und iOS Safe-Area Padding für moderne Handys */
+            padding: 12px 12px calc(12px + env(safe-area-inset-bottom)); 
+            border-top: 1px solid #333; z-index: 2000; flex-shrink: 0; 
+        }
         .garage { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 12px; }
         .v-btn { background: #232731; border: 1px solid #383e4d; color: white; padding: 10px 0; border-radius: 8px; font-size: 0.6em; font-weight: bold; touch-action: manipulation; cursor: pointer; }
         
@@ -70,7 +80,7 @@
     <div id="start-overlay">
         <div class="start-card">
             <h1>LST SIM</h1>
-            <p style="color:var(--s1); font-weight: bold; margin-bottom: 25px;">Beta 2.7 - Shop Complete</p>
+            <p style="color:var(--s1); font-weight: bold; margin-bottom: 25px;">Beta 2.8 - Mobile UI Fix</p>
             <button id="btn-continue" class="btn btn-blue" style="display:none;" onclick="continueGame()">WEITERSPIELEN</button>
             <div id="btn-divider" style="height: 1px; background: rgba(255,255,255,0.1); margin: 15px 0; display:none;"></div>
             <button class="btn btn-green" onclick="startGame('easy')">LEICHT (2.000 €)</button>
@@ -132,7 +142,7 @@
         let gameRunning = false, spawnTimer = null, missionFreq = 30, countdown = 5, soundEnabled = true, diffMult = 1.0, lvlStep = 10;
         let audioCtx = null;
 
-        const SAVE_KEY = 'lst_sim_v2.7';
+        const SAVE_KEY = 'lst_sim_v2.8';
 
         const streetNames = ["Hauptstraße", "Bürgermeister-Wohlfarth-Str.", "Haunstetter Str.", "Gartenstraße", "Landsberger Str.", "Finkenweg", "Heidestraße", "Guldenstraße", "Messerschmittstr.", "Königsallee"];
         
@@ -143,7 +153,6 @@
             { t: "VU - Eingeklemmt", req: ["ELW", "LF", "GW"], reward: 2000, duration: 90000 }
         ];
 
-        // NEUER SHOP: DLK (2) ist wieder da!
         const shopItems = [
             { n: "Zweites LF", t: "LF", p: 4500, l: 2 },
             { n: "Drehleiter (1)", t: "DLK", p: 8000, l: 3 },
