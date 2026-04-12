@@ -2,265 +2,212 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>FF Königsbrunn - Pro Center</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FF Königsbrunn - ProCenter</title>
     <style>
         :root { 
             --s1: #42a5f5; --s2: #66bb6a; --s3: #fdd835; --s4: #ef5350;
-            --bg: #1a1c23; --card: #282c34; --accent: #e53935; --text: #e0e0e0;
+            --bg: #0f111a; --sidebar: #1a1c23; --accent: #d32f2f; --text: #f0f0f0;
         }
-        body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; overflow: hidden; height: 100vh; }
+        body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         
-        /* Startbildschirm & Menü Overlay */
-        #start-screen, #ingame-menu {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(18, 20, 26, 0.95);
-            z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center;
-        }
-        #ingame-menu { display: none; background: rgba(0, 0, 0, 0.85); }
-
-        .menu-box { background: var(--card); padding: 25px; border-radius: 12px; border: 2px solid var(--accent); text-align: center; width: 85%; max-width: 350px; }
-        .setting-row { display: flex; justify-content: space-between; align-items: center; margin: 15px 0; padding: 10px; background: #333; border-radius: 8px; }
-        
-        /* Toggle Switch */
-        .switch { position: relative; display: inline-block; width: 44px; height: 22px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #555; transition: .4s; border-radius: 22px; }
-        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: var(--s2); }
-        input:checked + .slider:before { transform: translateX(22px); }
-
-        .btn { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; }
-        .btn-sec { background: #555; }
-
-        /* Game UI */
-        header { background: #12141a; padding: 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--accent); }
-        #menu-trigger { background: none; border: none; color: white; font-size: 1.5em; cursor: pointer; padding: 0 10px; }
-        
-        .level-container { padding: 5px 15px; background: #12141a; font-size: 0.75em; display: flex; justify-content: space-between; align-items: center; }
-        .xp-track { flex-grow: 1; height: 5px; background: #333; margin: 0 10px; border-radius: 3px; overflow: hidden; }
+        header { background: var(--sidebar); padding: 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--accent); }
+        .stats-bar { background: #12141a; padding: 5px 15px; display: flex; gap: 10px; font-size: 0.75em; align-items: center; border-bottom: 1px solid #333; }
+        .xp-bg { flex-grow: 1; height: 6px; background: #333; border-radius: 3px; overflow: hidden; }
         #xp-fill { height: 100%; background: var(--s3); width: 0%; transition: 0.5s; }
 
-        .status-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; background: #000; padding: 5px; }
-        .v-stat { font-size: 0.6em; text-align: center; padding: 4px 0; border-radius: 3px; background: var(--s2); color: #000; font-weight: bold; }
-        .v-stat.s1 { background: var(--s1); color: #fff; }
-        .v-stat.s3 { background: var(--s3); }
-        .v-stat.s4 { background: var(--s4); color: #fff; }
+        /* Personal Anzeige */
+        .staff-info { background: #1a1c23; color: var(--s2); padding: 5px 15px; font-weight: bold; font-size: 0.8em; display: flex; justify-content: space-between; border-bottom: 1px solid #444; }
 
-        #map { position: relative; width: 100%; height: 110px; background: #242b24; border-bottom: 1px solid #444; }
-        .marker { position: absolute; width: 18px; height: 18px; background: var(--accent); border-radius: 50%; border: 2px solid white; display: none; transform: translate(-50%, -50%); z-index: 10; font-size: 10px; font-weight: bold; color: white; align-items: center; justify-content: center; }
+        #map { height: 140px; background: #1b211b; position: relative; border-bottom: 1px solid #333; }
+        .marker { position: absolute; width: 22px; height: 22px; background: var(--accent); border-radius: 50%; border: 2px solid white; transform: translate(-50%, -50%); display: none; align-items: center; justify-content: center; font-weight: bold; box-shadow: 0 0 10px var(--accent); z-index: 10; font-size: 12px; }
 
-        #mission-area { flex-grow: 1; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 6px; }
-        .m-card { background: var(--card); border-radius: 8px; padding: 10px; border: 1px solid #3e4451; }
-        .m-card.active-sel { border: 2px solid var(--s1); }
+        #mission-area { flex-grow: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+        .m-card { background: var(--sidebar); border-radius: 8px; padding: 12px; border: 1px solid #333; }
+        .m-card.selected { border-color: var(--s1); background: #252833; }
+        .weather-alert { background: #ff9800; color: black; padding: 5px; text-align: center; font-weight: bold; font-size: 0.8em; display: none; }
 
-        .garage-area { background: #12141a; padding: 8px; border-top: 1px solid #333; }
-        .btn-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
-        .v-btn { background: #3a3f4b; color: white; border: none; padding: 10px 0; border-radius: 5px; font-size: 0.75em; font-weight: bold; }
+        .garage { background: var(--sidebar); padding: 10px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+        .v-btn { background: #2c2f3a; border: none; color: white; padding: 10px 0; border-radius: 6px; font-size: 0.7em; font-weight: bold; position: relative; }
         .v-btn.selected { background: var(--s1); }
-        #dispatch-btn { width: 100%; margin-top: 8px; background: var(--accent); color: white; border: none; padding: 14px; border-radius: 6px; font-weight: bold; text-transform: uppercase; }
-        #log { background: #000; color: #4caf50; height: 35px; font-family: monospace; font-size: 0.6em; padding: 5px 10px; overflow-y: auto; }
+        .v-btn span { position: absolute; top: -5px; right: -5px; background: #555; border-radius: 50%; width: 15px; height: 15px; font-size: 10px; display: flex; align-items: center; justify-content: center; border: 1px solid white; }
+
+        .actions { padding: 10px; background: var(--sidebar); border-top: 1px solid #333; }
+        #send-btn { width: 100%; padding: 15px; border-radius: 8px; border: none; background: var(--accent); color: white; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<div id="start-screen">
-    <div class="menu-box">
-        <h1>FF KÖNIGSBRUNN</h1>
-        <div class="setting-row">
-            <span>Sound & Funk</span>
-            <label class="switch">
-                <input type="checkbox" id="audio-init" checked>
-                <span class="slider"></span>
-            </label>
-        </div>
-        <button class="btn" onclick="startGame()">DIENST ANTRETEN</button>
-    </div>
-</div>
-
-<div id="ingame-menu">
-    <div class="menu-box">
-        <h2>EINSTELLUNGEN</h2>
-        <div class="setting-row">
-            <span>Sound aktiv</span>
-            <label class="switch">
-                <input type="checkbox" id="audio-live" onchange="toggleAudio(this.checked)">
-                <span class="slider"></span>
-            </label>
-        </div>
-        <button class="btn" onclick="closeMenu()">ZURÜCK ZUM FUNK</button>
-        <button class="btn btn-sec" onclick="location.reload()">BEENDEN</button>
-    </div>
-</div>
-
-<div id="main-game" style="display:none; flex-direction:column; height: 100vh;">
     <header>
-        <span style="font-weight:bold; color:var(--accent); font-size:0.9em;">LEITSTELLE KÖB</span>
-        <button id="menu-trigger" onclick="openMenu()">⚙️</button>
+        <span style="font-weight:900;">ILS KÖNIGSBRUNN</span>
+        <div id="clock">00:00:00</div>
     </header>
-    
-    <div class="level-container">
-        <span id="rank-name">ANWÄRTER</span>
-        <div class="xp-track"><div id="xp-fill"></div></div>
-        <span>LVL <b id="lvl-num">1</b></span>
+
+    <div class="stats-bar">
+        <span>LVL <b id="lvl">1</b></span>
+        <div class="xp-bg"><div id="xp-fill"></div></div>
     </div>
 
-    <div class="status-grid" id="stat-bar"></div>
-    
+    <div class="staff-info">
+        <span>PERSONAL VERFÜGBAR:</span>
+        <span id="staff-count">45</span>
+    </div>
+
+    <div id="weather-banner" class="weather-alert">⚠️ UNWETTER-WARNUNG: ERHÖHTES EINSATZAUFKOMMEN</div>
+
     <div id="map">
-        <div id="dot-0" class="marker">1</div>
-        <div id="dot-1" class="marker">2</div>
+        <div id="dot0" class="marker">1</div>
+        <div id="dot1" class="marker">2</div>
+        <div id="dot2" class="marker">3</div>
     </div>
 
     <div id="mission-area"></div>
-    <div id="log">>> Funkkreis bereit...</div>
 
-    <div class="garage-area">
-        <div class="btn-grid" id="garage"></div>
-        <button id="dispatch-btn" onclick="execute()">Einsatz Bestätigen</button>
+    <div class="garage" id="garage"></div>
+
+    <div class="actions">
+        <button id="send-btn" onclick="execute()">EINSATZ BESTÄTIGEN (S3)</button>
     </div>
-</div>
 
-<script>
-    const vehicles = ["10/1", "12/1", "65/1", "40/1", "40/2", "30/1", "41/1", "62/1", "21/1"];
-    let states = {}; let activeMissions = [];
-    let xp = 0, lvl = 1, currentVehicles = [];
-    let selectedId = null;
-    let audioEnabled = true;
-    let audioCtx;
+    <script>
+        const vehicles = {
+            "10/1": { staff: 2, status: 2 },
+            "12/1": { staff: 3, status: 2 },
+            "40/1": { staff: 9, status: 2 },
+            "40/2": { staff: 9, status: 2 },
+            "30/1": { staff: 3, status: 2 },
+            "41/1": { staff: 9, status: 2 },
+            "62/1": { staff: 2, status: 2 },
+            "65/1": { staff: 3, status: 2 },
+            "21/1": { staff: 6, status: 2 }
+        };
 
-    const db = [
-        { t: "Zimmerbrand", r: ["12/1", "40/1", "30/1"], xp: 150, msg: "Zimmerbrand im Obergeschoss." },
-        { t: "Person in Aufzug", r: ["40/1"], xp: 70, msg: "Person in Aufzug eingeschlossen." },
-        { t: "Verkehrsunfall", r: ["10/1", "40/1", "62/1"], xp: 180, msg: "VU auf der B-17." },
-        { t: "Kellerbrand", r: ["12/1", "40/1", "41/1"], xp: 160, msg: "Starke Rauchentwicklung aus Keller." }
-    ];
+        let activeMissions = [], selectedVehicles = [], selectedMissionId = null;
+        let xp = 0, lvl = 1, staffMax = 45, staffCurrent = 45;
+        let weatherMode = false;
 
-    function startGame() {
-        audioEnabled = document.getElementById('audio-init').checked;
-        document.getElementById('audio-live').checked = audioEnabled;
-        if (audioEnabled) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        
-        document.getElementById('start-screen').style.display = 'none';
-        document.getElementById('main-game').style.display = 'flex';
-        setInterval(trigger, 22000);
-        trigger();
-    }
-
-    function openMenu() { document.getElementById('ingame-menu').style.display = 'flex'; }
-    function closeMenu() { document.getElementById('ingame-menu').style.display = 'none'; }
-    function toggleAudio(val) { 
-        audioEnabled = val; 
-        if(val && !audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }
-
-    function playTone(freq, type, duration, vol) {
-        if(!audioEnabled || !audioCtx) return;
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-        gain.gain.setValueAtTime(vol, audioCtx.currentTime);
-        osc.connect(gain); gain.connect(audioCtx.destination);
-        osc.start(); osc.stop(audioCtx.currentTime + duration);
-    }
-
-    function radioSpeech(text) {
-        if(!audioEnabled) return;
-        const s = new SpeechSynthesisUtterance(text + " Kommen.");
-        s.lang = 'de-DE'; window.speechSynthesis.speak(s);
-    }
-
-    vehicles.forEach(v => {
-        states[v] = 2;
-        document.getElementById('stat-bar').innerHTML += `<div class="v-stat" id="s-${v}">${v}:2</div>`;
-        document.getElementById('garage').innerHTML += `<button class="v-btn" id="b-${v}" onclick="tapV('${v}')">${v}</button>`;
-    });
-
-    function tapV(v) {
-        if(states[v] !== 2) return;
-        if(currentVehicles.includes(v)) {
-            currentVehicles = currentVehicles.filter(x => x !== v);
-            document.getElementById('b-'+v).classList.remove('selected');
-        } else {
-            currentVehicles.push(v);
-            document.getElementById('b-'+v).classList.add('selected');
-        }
-    }
-
-    function trigger() {
-        if(activeMissions.length >= 2) return;
-        const free = Object.keys(states).filter(v => states[v] === 2);
-        const avail = db.filter(m => m.r.every(req => free.includes(req)));
-        if(avail.length === 0) return;
-
-        const m = {...avail[Math.floor(Math.random() * avail.length)], id: Math.random()};
-        m.x = (20 + Math.random() * 60) + "%"; m.y = (20 + Math.random() * 50) + "%";
-        activeMissions.push(m);
-        refreshUI();
-        playTone(880, 'square', 0.4, 0.05);
-        setTimeout(() => radioSpeech("Alarm für Königsbrunn. " + m.msg), 1000);
-    }
-
-    function refreshUI() {
-        const area = document.getElementById('mission-area');
-        area.innerHTML = activeMissions.length === 0 ? '<div style="text-align:center; padding-top:20px; color:#555;">Warten auf Notruf...</div>' : '';
-        activeMissions.forEach((m, i) => {
-            const div = document.createElement('div');
-            div.className = `m-card ${selectedId === m.id ? 'active-sel' : ''}`;
-            div.onclick = () => { selectedId = m.id; refreshUI(); };
-            div.innerHTML = `<h3>${m.t}</h3><span style="font-size:0.7em;color:var(--s3)">Bedarf: ${m.r.join(", ")}</span>`;
-            area.appendChild(div);
-            const dot = document.getElementById('dot-' + i);
-            if(dot) { dot.style.left = m.x; dot.style.top = m.y; dot.style.display = "flex"; }
+        // Init UI
+        Object.keys(vehicles).forEach(v => {
+            document.getElementById('garage').innerHTML += `
+                <button class="v-btn" id="btn-${v}" onclick="toggleV('${v}')">
+                    ${v} <span>${vehicles[v].staff}</span>
+                </button>`;
         });
-        [0,1].forEach(i => { if(i >= activeMissions.length) document.getElementById('dot-'+i).style.display="none"; });
-        vehicles.forEach(v => document.getElementById('b-'+v).disabled = (states[v] !== 2));
-    }
 
-    function execute() {
-        if(selectedId === null || currentVehicles.length === 0) return;
-        const mIdx = activeMissions.findIndex(m => m.id === selectedId);
-        const m = activeMissions[mIdx];
-        const vList = [...currentVehicles];
-        const success = m.r.every(req => vList.includes(req));
-
-        selectedId = null; currentVehicles = [];
-        document.querySelectorAll('.v-btn').forEach(b => b.classList.remove('selected'));
-
-        vList.forEach(v => { updS(v, 3); playTone(1000, 'sine', 0.1, 0.03); });
-        log("S3: " + m.t);
-
-        setTimeout(() => {
-            vList.forEach(v => { updS(v, 4); playTone(1000, 'sine', 0.1, 0.03); });
-            log("S4: " + m.t);
-            setTimeout(() => {
-                activeMissions.splice(mIdx, 1); refreshUI();
-                if(success) {
-                    xp += m.xp; 
-                    if(xp >= lvl*400) { lvl++; xp=0; radioSpeech("Beförderung erfolgreich."); }
-                    document.getElementById('lvl-num').innerText = lvl;
-                    document.getElementById('xp-fill').style.width = (xp/(lvl*400)*100) + "%";
-                }
-                vList.forEach(v => updS(v, 1));
-                setTimeout(() => { vList.forEach(v => updS(v, 2)); refreshUI(); }, 7000);
-            }, 8000);
-        }, 3000);
-    }
-
-    function updS(v, s) {
-        states[v] = s;
-        const el = document.getElementById('s-'+v);
-        if(el) {
-            el.innerText = `${v}:${s}`;
-            el.className = "v-stat " + (s===1?'s1':s===3?'s3':s===4?'s4':'');
+        function toggleV(v) {
+            if(vehicles[v].status !== 2) return;
+            const idx = selectedVehicles.indexOf(v);
+            if(idx > -1) {
+                selectedVehicles.splice(idx, 1);
+                document.getElementById('btn-'+v).classList.remove('selected');
+            } else {
+                selectedVehicles.push(v);
+                document.getElementById('btn-'+v).classList.add('selected');
+            }
         }
-    }
 
-    function log(msg) {
-        const l = document.getElementById('log');
-        l.innerHTML = `<div>> ${msg}</div>` + l.innerHTML;
-        l.scrollTop = 0;
-    }
-</script>
+        const missionPool = [
+            { t: "Keller unter Wasser", r: ["65/1"], staff: 3, xp: 40, msg: "Sturm-Schaden: Keller unter Wasser." },
+            { t: "Baum auf Straße", r: ["40/1"], staff: 6, xp: 60, msg: "Sturm-Schaden: Baum blockiert Fahrbahn." },
+            { t: "Dachstuhlbrand", r: ["12/1", "40/1", "30/1", "40/2"], staff: 24, xp: 400, msg: "Großbrand: Dachstuhl steht in Flammen!" },
+            { t: "Person klemmt", r: ["10/1", "40/1", "62/1"], staff: 13, xp: 200, msg: "VU: Person nach Unfall eingeklemmt." }
+        ];
+
+        function triggerMission() {
+            if(activeMissions.length >= 3) return;
+            const pool = weatherMode ? missionPool.slice(0,2) : missionPool;
+            const m = {...pool[Math.floor(Math.random()*pool.length)], id: Math.random(), x: 20+Math.random()*60, y: 20+Math.random()*50};
+            activeMissions.push(m);
+            updateUI();
+            new Audio('https://www.soundjay.com/buttons/beep-01a.mp3').play().catch(()=>{});
+        }
+
+        function updateUI() {
+            const area = document.getElementById('mission-area');
+            area.innerHTML = activeMissions.length === 0 ? '<div style="text-align:center; padding:20px; color:#555;">Funkstille...</div>' : '';
+            activeMissions.forEach((m, i) => {
+                const div = document.createElement('div');
+                div.className = `m-card ${selectedMissionId === m.id ? 'selected' : ''}`;
+                div.onclick = () => { selectedMissionId = m.id; updateUI(); };
+                div.innerHTML = `<b>${m.t}</b><br><small style="color:var(--s3)">Bedarf: ${m.r.join(", ")} | Min. Personal: ${m.staff}</small>`;
+                area.appendChild(div);
+                const dot = document.getElementById('dot'+i);
+                dot.style.display = "flex"; dot.style.left = m.x+"%"; dot.style.top = m.y+"%";
+            });
+            [0,1,2].forEach(i => { if(i >= activeMissions.length) document.getElementById('dot'+i).style.display="none"; });
+            
+            document.getElementById('staff-count').innerText = staffCurrent;
+            document.getElementById('staff-count').style.color = staffCurrent < 10 ? 'var(--s4)' : 'var(--s2)';
+            Object.keys(vehicles).forEach(v => {
+                const btn = document.getElementById('btn-'+v);
+                btn.disabled = (vehicles[v].status !== 2);
+                btn.style.opacity = (vehicles[v].status === 2) ? "1" : "0.3";
+            });
+        }
+
+        function execute() {
+            if(!selectedMissionId || selectedVehicles.length === 0) return;
+            const mIdx = activeMissions.findIndex(m => m.id === selectedMissionId);
+            const m = activeMissions[mIdx];
+            
+            // Personal berechnen
+            let totalStaff = 0;
+            selectedVehicles.forEach(v => totalStaff += vehicles[v].staff);
+
+            if(totalStaff < m.staff) {
+                alert("ZU WENIG PERSONAL! Du brauchst mindestens " + m.staff + " Leute.");
+                return;
+            }
+            if(staffCurrent < totalStaff) {
+                alert("NICHT GENUG PERSONAL IN DER WACHE!");
+                return;
+            }
+
+            // Start
+            const ve = [...selectedVehicles];
+            const neededStaff = totalStaff;
+            staffCurrent -= neededStaff;
+            selectedVehicles = [];
+            selectedMissionId = null;
+            document.querySelectorAll('.v-btn').forEach(b => b.classList.remove('selected'));
+
+            ve.forEach(v => vehicles[v].status = 3);
+            updateUI();
+
+            setTimeout(() => {
+                ve.forEach(v => vehicles[v].status = 4);
+                updateUI();
+                setTimeout(() => {
+                    activeMissions.splice(mIdx, 1);
+                    xp += m.xp; if(xp >= lvl*500) { lvl++; xp=0; }
+                    document.getElementById('lvl').innerText = lvl;
+                    document.getElementById('xp-fill').style.width = (xp/(lvl*500)*100)+"%";
+                    
+                    ve.forEach(v => vehicles[v].status = 1);
+                    updateUI();
+                    
+                    // Rückkehr des Personals (B)
+                    setTimeout(() => {
+                        ve.forEach(v => vehicles[v].status = 2);
+                        staffCurrent += vehicles[ve[0]].staff; // Vereinfacht: Personal kehrt mit Auto zurück
+                        // Da wir oben totalStaff abgezogen haben, geben wir es hier zurück
+                        staffCurrent += (neededStaff - vehicles[ve[0]].staff); 
+                        if(staffCurrent > staffMax) staffCurrent = staffMax;
+                        updateUI();
+                    }, 8000);
+                }, 10000);
+            }, 3000);
+        }
+
+        // Wetter-System (C)
+        setInterval(() => {
+            weatherMode = Math.random() > 0.8;
+            document.getElementById('weather-banner').style.display = weatherMode ? 'block' : 'none';
+        }, 60000);
+
+        setInterval(triggerMission, 20000);
+        setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString(); }, 1000);
+        triggerMission();
+    </script>
 </body>
 </html>
