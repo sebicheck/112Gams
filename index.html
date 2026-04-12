@@ -1,9 +1,9 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LST SIM - Beta 3.1 (Shop Fix)</title>
+    <title>LST SIM - Beta 3.2 (Crash-Fix)</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         :root { 
@@ -33,19 +33,16 @@
         .btn-green { background: var(--s2); border-bottom: 4px solid #388e3c; }
         .btn-yellow { background: var(--s3); color: #000; border-bottom: 4px solid #fbc02d; }
         .btn-red { background: var(--s4); border-bottom: 4px solid #c62828; }
-        .btn-gray { background: #444; color: #aaa; border-bottom: 4px solid #222; } /* NEU: Grauer Button für GEKAUFT */
+        .btn-gray { background: #444; color: #aaa; border-bottom: 4px solid #222; }
         .btn:active { transform: scale(0.98); }
         .btn:disabled { opacity: 0.6; cursor: not-allowed; border-bottom-width: 0; transform: none; }
 
         header { background: var(--sidebar); padding: 12px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--accent); z-index: 1000; flex-shrink: 0; }
         .top-status { background: #12141a; padding: 8px 15px; display: flex; justify-content: space-between; font-size: 0.8em; font-weight: bold; flex-shrink: 0; }
         
-        #map { height: 22vh; width: 100%; filter: grayscale(1) invert(1) brightness(0.75); z-index: 10; flex-shrink: 0; }
+        #map { height: 22vh; width: 100%; filter: grayscale(1) invert(1) brightness(0.75); z-index: 10; flex-shrink: 0; background: #222; }
         
-        #mission-area { 
-            flex-grow: 1; overflow-y: auto; padding: 12px; 
-            -webkit-overflow-scrolling: touch; 
-        }
+        #mission-area { flex-grow: 1; overflow-y: auto; padding: 12px; -webkit-overflow-scrolling: touch; }
         
         .m-card { 
             background: var(--sidebar); border-radius: 15px; padding: 15px; margin-bottom: 12px; 
@@ -79,8 +76,8 @@
     <div id="start-overlay">
         <div class="start-card">
             <h1>LST SIM</h1>
-            <p style="color:var(--s1); font-weight: bold; margin-bottom: 25px;">Beta 3.1 - Shop Fix</p>
-            <button id="btn-continue" class="btn btn-blue" style="display:none;" onclick="continueGame()">WEITERSPIELEN</button>
+            <p style="color:var(--s1); font-weight: bold; margin-bottom: 25px;">Beta 3.2 - Crash Fix</p>
+            <button id="btn-continue" class="btn btn-blue" style="display:none;" onclick="continueGame(false)">WEITERSPIELEN</button>
             <div id="btn-divider" style="height: 1px; background: rgba(255,255,255,0.1); margin: 20px 0; display:none;"></div>
             <button class="btn btn-green" onclick="startGame('easy')">LEICHT (2.000 €)</button>
             <button class="btn btn-yellow" onclick="startGame('medium')">MITTEL (800 €)</button>
@@ -137,8 +134,7 @@
         let gameRunning = false, spawnTimer = null, missionFreq = 30, countdown = 5, soundEnabled = true, diffMult = 1.0, lvlStep = 10;
         let audioCtx = null;
 
-        // NEUER KEY für Beta 3.1
-        const SAVE_KEY = 'lst_sim_v3.1';
+        const SAVE_KEY = 'lst_sim_v3.2';
 
         const streetNames = ["Hauptstraße", "Bürgermeister-Wohlfarth-Str.", "Haunstetter Str.", "Gartenstraße", "Landsberger Str.", "Finkenweg", "Heidestraße", "Guldenstraße", "Messerschmittstr.", "Königsallee"];
         
@@ -153,7 +149,6 @@
             { t: "Dachstuhlbrand", req: ["ELW", "LF", "LF", "DLK"], reward: 3000, duration: 120000 }
         ];
 
-        // SHOP ITEMS MIT "max" (Maximale Anzahl dieses Fahrzeugtyps in der Flotte)
         const shopItems = [
             { n: "Zweites LF", t: "LF", p: 4500, l: 2, max: 2 },
             { n: "Drehleiter (1)", t: "DLK", p: 8000, l: 3, max: 1 },
@@ -162,49 +157,77 @@
             { n: "Drehleiter (2)", t: "DLK", p: 11000, l: 6, max: 2 }
         ];
 
+        // SICHERER START
         window.onload = () => { 
-            if(localStorage.getItem(SAVE_KEY)) {
-                document.getElementById('btn-continue').style.display = 'block';
-                document.getElementById('btn-divider').style.display = 'block';
-            }
+            try {
+                if(localStorage.getItem(SAVE_KEY)) {
+                    document.getElementById('btn-continue').style.display = 'block';
+                    document.getElementById('btn-divider').style.display = 'block';
+                }
+            } catch(e) { console.warn("Speicherzugriff blockiert (Inkognito-Modus?)"); }
         };
 
         function saveGame() { 
-            localStorage.setItem(SAVE_KEY, JSON.stringify({money, lvl, vehicles, doneMissions, diff: diffMult, step: lvlStep, freq: missionFreq})); 
+            try {
+                localStorage.setItem(SAVE_KEY, JSON.stringify({money, lvl, vehicles, doneMissions, diff: diffMult, step: lvlStep, freq: missionFreq})); 
+            } catch(e) {} // Ignoriere Speicherfehler
         }
 
         function initAudio() {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            try {
+                if (!audioCtx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    if(AudioContext) audioCtx = new AudioContext();
+                }
+            } catch(e) {} // Verhindert Absturz wenn Handy Audio blockiert
         }
 
+        // NEUES SPIEL
         function startGame(mode) {
             initAudio();
+            
+            // Alten Spielstand löschen, damit er nicht überschreibt
+            try { localStorage.removeItem(SAVE_KEY); } catch(e) {}
+
             money = (mode === 'easy') ? 2000 : (mode === 'hard') ? 300 : 800;
             diffMult = (mode === 'easy') ? 1.3 : (mode === 'hard') ? 0.8 : 1.0;
-            
-            // Standard Flotte: 1x ELW, 1x LF
             vehicles = {"10/1":{type:"ELW",status:2}, "40/1":{type:"LF",status:2}};
-            
             lvl = 1; doneMissions = 0; activeMissions = [];
-            continueGame();
+            
+            continueGame(true); // "true" bedeutet: lade NICHT den alten Spielstand!
         }
 
-        function continueGame() {
+        // SPIEL LADEN & STARTEN
+        function continueGame(isNewGame = false) {
             initAudio();
-            const data = localStorage.getItem(SAVE_KEY);
-            if(data) {
-                const d = JSON.parse(data);
-                money = d.money; lvl = d.lvl; vehicles = d.vehicles; doneMissions = d.doneMissions;
-                diffMult = d.diff; missionFreq = d.freq || 30;
-                document.getElementById('freq-slider').value = missionFreq;
-                document.getElementById('freq-val').innerText = missionFreq;
+            
+            if(!isNewGame) {
+                try {
+                    const data = localStorage.getItem(SAVE_KEY);
+                    if(data) {
+                        const d = JSON.parse(data);
+                        money = d.money || 0; lvl = d.lvl || 1; vehicles = d.vehicles || {}; 
+                        doneMissions = d.doneMissions || 0; diffMult = d.diff || 1.0; 
+                        missionFreq = d.freq || 30;
+                        document.getElementById('freq-slider').value = missionFreq;
+                        document.getElementById('freq-val').innerText = missionFreq;
+                    }
+                } catch(e) { console.warn("Laden fehlgeschlagen."); }
             }
+
             document.getElementById('start-overlay').style.display = 'none';
             gameRunning = true;
-            if(!map) {
-                map = L.map('map', {zoomControl:false, attributionControl:false, tap: false}).setView([48.268, 10.891], 14);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+            
+            // KARTEN-SCHUTZ: Verhindert Absturz, falls Leaflet nicht geladen wurde
+            if (typeof L !== 'undefined') {
+                if(!map) {
+                    map = L.map('map', {zoomControl:false, attributionControl:false, tap: false}).setView([48.268, 10.891], 14);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+                }
+            } else {
+                document.getElementById('map').innerHTML = "<div style='padding:20px;text-align:center;color:#ef5350;'>Karte konnte nicht geladen werden (Internet?). Du kannst trotzdem spielen!</div>";
             }
+            
             startSpawner(); updateUI(); renderGarage();
         }
 
@@ -214,8 +237,12 @@
             if(spawnTimer) clearInterval(spawnTimer);
             document.getElementById('set-mod').style.display = 'none';
             document.getElementById('start-overlay').style.display = 'flex';
-            document.getElementById('btn-continue').style.display = 'block';
-            document.getElementById('btn-divider').style.display = 'block';
+            try {
+                if(localStorage.getItem(SAVE_KEY)) {
+                    document.getElementById('btn-continue').style.display = 'block';
+                    document.getElementById('btn-divider').style.display = 'block';
+                }
+            } catch(e) {}
         }
 
         function updateFreq(val) {
@@ -234,15 +261,17 @@
 
         function playAlarm() {
             if (!soundEnabled || !audioCtx) return;
-            const playTone = (freq, start, duration) => {
-                const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-                osc.type = 'sine'; osc.frequency.setValueAtTime(freq, audioCtx.currentTime + start);
-                gain.gain.setValueAtTime(0.1, audioCtx.currentTime + start);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + start + duration);
-                osc.connect(gain); gain.connect(audioCtx.destination);
-                osc.start(audioCtx.currentTime + start); osc.stop(audioCtx.currentTime + start + duration);
-            };
-            playTone(880, 0, 0.4); playTone(659, 0.2, 0.4); playTone(523, 0.4, 0.6);
+            try {
+                const playTone = (freq, start, duration) => {
+                    const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+                    osc.type = 'sine'; osc.frequency.setValueAtTime(freq, audioCtx.currentTime + start);
+                    gain.gain.setValueAtTime(0.1, audioCtx.currentTime + start);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + start + duration);
+                    osc.connect(gain); gain.connect(audioCtx.destination);
+                    osc.start(audioCtx.currentTime + start); osc.stop(audioCtx.currentTime + start + duration);
+                };
+                playTone(880, 0, 0.4); playTone(659, 0.2, 0.4); playTone(523, 0.4, 0.6);
+            } catch(e) {}
         }
 
         function startSpawner() {
@@ -274,9 +303,13 @@
             if(!possible.length) return;
             const m = possible[Math.floor(Math.random()*possible.length)];
             const lat = 48.268 + (Math.random()-0.5)*0.015, lng = 10.891 + (Math.random()-0.5)*0.02;
-            const marker = L.circleMarker([lat, lng], {color:'red', radius:10}).addTo(map);
-            const street = streetNames[Math.floor(Math.random()*streetNames.length)] + " " + (Math.floor(Math.random()*60)+1);
             
+            let marker = null;
+            if(typeof L !== 'undefined' && map) {
+                marker = L.circleMarker([lat, lng], {color:'red', radius:10}).addTo(map);
+            }
+            
+            const street = streetNames[Math.floor(Math.random()*streetNames.length)] + " " + (Math.floor(Math.random()*60)+1);
             activeMissions.push({...m, id: Math.random(), lat, lng, marker, processing: false, addr: street});
             playAlarm();
             updateUI();
@@ -298,7 +331,10 @@
                     </div>
                     <div style="margin-top:8px;">${m.req.map(r => `<span class="req-tag">${r}</span>`).join("")}</div>
                 `;
-                card.onclick = () => { selectedMissionId = m.id; updateUI(); map.panTo([m.lat, m.lng]); };
+                card.onclick = () => { 
+                    selectedMissionId = m.id; updateUI(); 
+                    if(typeof L !== 'undefined' && map) map.panTo([m.lat, m.lng]); 
+                };
                 area.appendChild(card);
             });
             renderGarageColors();
@@ -332,35 +368,4 @@
         }
 
         function execute() {
-            if(!selectedMissionId || !selectedVehicles.length) return;
-            const m = activeMissions.find(x => x.id === selectedMissionId);
-            if(!m || m.processing) return;
-            
-            const sentTypes = selectedVehicles.map(v => vehicles[v].type);
-            const missing = m.req.filter(r => {
-                const idx = sentTypes.indexOf(r);
-                if(idx > -1) { sentTypes.splice(idx, 1); return false; }
-                return true;
-            });
-
-            if(missing.length > 0) { alert("Es fehlen Fahrzeuge: " + missing.join(", ")); return; }
-
-            m.processing = true;
-            const sent = [...selectedVehicles]; selectedVehicles = []; selectedMissionId = null;
-            sent.forEach(v => vehicles[v].status = 3); updateUI();
-            
-            setTimeout(() => {
-                sent.forEach(v => vehicles[v].status = 4); updateUI();
-                setTimeout(() => {
-                    if(m.marker) map.removeLayer(m.marker);
-                    activeMissions = activeMissions.filter(x => x.id !== m.id);
-                    money += (m.reward * diffMult); doneMissions++;
-                    if(doneMissions >= (lvl * lvlStep)) { doneMissions = 0; lvl++; alert("LEVEL UP!"); }
-                    sent.forEach(v => vehicles[v].status = 1); updateUI();
-                    setTimeout(() => { sent.forEach(v => vehicles[v].status = 2); updateUI(); saveGame(); }, 5000);
-                }, m.duration);
-            }, 3000);
-        }
-
-        function openShop() {
-            const list = document.getElem
+         
