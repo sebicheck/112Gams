@@ -10,72 +10,70 @@
             --bg: #0f111a; --sidebar: #1a1c23; --accent: #d32f2f; --text: #f0f0f0;
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
-        html, body { height: 100%; width: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; }
+        html, body { height: 100%; width: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: sans-serif; }
 
-        /* START BILDSCHIRM */
-        #start-overlay {
-            position: fixed; inset: 0; background: linear-gradient(rgba(15,17,26,0.8), rgba(15,17,26,0.9)), url('https://images.unsplash.com/photo-1516515429572-1f9f3b392d7a?auto=format&fit=crop&w=800&q=80');
-            background-size: cover; background-position: center;
-            display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; text-align: center; padding: 20px;
-        }
-        .start-card { background: rgba(26, 28, 35, 0.95); padding: 30px; border-radius: 20px; border: 2px solid var(--accent); box-shadow: 0 0 30px rgba(211, 47, 47, 0.3); max-width: 320px; width: 100%; }
-        .start-btn { width: 100%; padding: 18px; border-radius: 12px; border: none; background: var(--accent); color: white; font-weight: bold; font-size: 1.1em; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; margin-top: 20px; box-shadow: 0 5px 0 #800; }
-        .start-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #800; }
+        /* START SCREEN */
+        #start-overlay { position: fixed; inset: 0; background: #0f111a; display: flex; align-items: center; justify-content: center; z-index: 9999; }
+        .start-card { background: var(--sidebar); padding: 30px; border-radius: 20px; border: 2px solid var(--accent); text-align: center; width: 90%; max-width: 350px; }
+        .start-btn { width: 100%; padding: 15px; border-radius: 10px; border: none; background: var(--accent); color: white; font-weight: bold; margin-top: 20px; cursor: pointer; }
 
-        /* GAME LAYOUT */
-        body { display: flex; flex-direction: column; }
-        header { background: var(--sidebar); padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--accent); }
-        .stats-bar { background: #12141a; padding: 6px 15px; display: flex; gap: 12px; font-size: 0.75em; align-items: center; }
-        .xp-bg { flex-grow: 1; height: 6px; background: #333; border-radius: 3px; overflow: hidden; }
-        #xp-fill { height: 100%; background: var(--s3); width: 0%; transition: 0.5s; }
-        .staff-info { background: #1a1c23; color: var(--s2); padding: 6px 15px; font-weight: bold; font-size: 0.8em; display: flex; justify-content: space-between; border-bottom: 1px solid #333; }
+        /* HEADER & STATS */
+        header { background: var(--sidebar); padding: 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--accent); }
+        .top-info { background: #12141a; padding: 6px 12px; display: flex; justify-content: space-between; font-size: 0.75em; border-bottom: 1px solid #333; }
+        .money { color: #ffca28; font-weight: bold; }
 
-        #map { height: 22vh; background: #1b211b; position: relative; border-bottom: 1px solid #333; flex-shrink: 0; }
-        .marker { position: absolute; width: 22px; height: 22px; background: var(--accent); border-radius: 50%; border: 2px solid white; transform: translate(-50%, -50%); display: none; align-items: center; justify-content: center; font-weight: bold; font-size: 11px; box-shadow: 0 0 12px var(--accent); z-index: 10; }
+        /* MAP */
+        #map { height: 18vh; background: #1b211b; position: relative; border-bottom: 1px solid #333; flex-shrink: 0; }
+        .marker { position: absolute; width: 22px; height: 22px; background: var(--accent); border-radius: 50%; border: 2px solid white; transform: translate(-50%, -50%); display: none; align-items: center; justify-content: center; font-weight: bold; font-size: 11px; z-index: 10; }
 
-        #mission-area { flex-grow: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; background: #14161e; }
-        .m-card { background: var(--sidebar); border-radius: 10px; padding: 12px; border: 1px solid #333; transition: 0.2s; }
-        .m-card.selected { border-color: var(--s1); background: #252833; box-shadow: 0 0 10px rgba(66, 165, 245, 0.2); }
+        /* LOGBUCH (Neu!) */
+        #radio-log { height: 60px; background: #000; color: #4caf50; font-family: monospace; font-size: 0.7em; padding: 5px 10px; overflow-y: hidden; border-bottom: 1px solid #333; }
+        #radio-log div { border-left: 2px solid #4caf50; padding-left: 5px; margin-bottom: 2px; }
 
+        /* MISSION AREA */
+        #mission-area { flex-grow: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; background: #14161e; }
+        .m-card { background: var(--sidebar); border-radius: 10px; padding: 10px; border: 1px solid #333; font-size: 0.85em; }
+        .m-card.selected { border-color: var(--s1); background: #252833; }
+
+        /* GARAGE */
         .bottom-ui { flex-shrink: 0; background: var(--sidebar); border-top: 1px solid #333; padding: 10px; padding-bottom: 25px; }
         .garage { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 10px; }
         .v-btn { background: #2c2f3a; border: none; color: white; padding: 14px 0; border-radius: 8px; font-size: 0.8em; font-weight: bold; position: relative; }
         .v-btn.selected { background: var(--s1); }
         .v-btn span { position: absolute; top: -4px; right: -4px; background: #444; border-radius: 50%; width: 16px; height: 16px; font-size: 9px; display: flex; align-items: center; justify-content: center; border: 1px solid #fff; }
 
-        #send-btn { width: 100%; padding: 16px; border-radius: 10px; border: none; background: var(--accent); color: white; font-weight: bold; font-size: 1em; text-transform: uppercase; }
+        #send-btn { width: 100%; padding: 16px; border-radius: 10px; border: none; background: var(--accent); color: white; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div id="start-overlay">
         <div class="start-card">
-            <h1 style="color:var(--accent); font-size: 1.8em; margin-bottom: 5px;">ILS KÖNIGSBRUNN</h1>
-            <p style="font-size: 0.8em; color: #888; margin-bottom: 20px;">Einsatzleitstellen-Simulator v5.0</p>
-            <p style="font-size: 0.7em; margin-bottom: 10px;">Bitte stelle sicher, dass dein Ton eingeschaltet ist.</p>
-            <button class="start-btn" onclick="startGame()">Dienst antreten</button>
+            <h1 style="color:var(--accent)">ILS KÖNIGSBRUNN</h1>
+            <p style="margin-top:10px; font-size:0.8em">Simulation wird geladen...</p>
+            <button class="start-btn" onclick="startGame()">DIENST ANTRETEN</button>
         </div>
     </div>
 
     <header>
-        <span style="font-weight:900; letter-spacing: 1px;">KÖNIGSBRUNN 112</span>
+        <span style="font-weight:900;">ILS KÖNIGSBRUNN</span>
         <div id="clock">00:00:00</div>
     </header>
 
-    <div class="stats-bar">
+    <div class="top-info">
+        <span>👩‍🚒 Personal: <b id="staff-count">45</b></span>
+        <span class="money">💰 <span id="money-count">0</span> €</span>
         <span>LVL <b id="lvl">1</b></span>
-        <div class="xp-bg"><div id="xp-fill"></div></div>
-    </div>
-
-    <div class="staff-info">
-        <span>STATUS: BEREIT</span>
-        <span>👩‍🚒 <span id="staff-count">45</span></span>
     </div>
 
     <div id="map">
         <div id="dot0" class="marker">1</div>
         <div id="dot1" class="marker">2</div>
         <div id="dot2" class="marker">3</div>
+    </div>
+
+    <div id="radio-log">
+        <div>> System bereit. Warten auf Notruf...</div>
     </div>
 
     <div id="mission-area"></div>
@@ -88,51 +86,44 @@
     <script>
         let audioCtx;
         const vehicles = {
-            "10/1": { staff: 2, status: 2 },
-            "12/1": { staff: 3, status: 2 },
-            "40/1": { staff: 9, status: 2 },
-            "40/2": { staff: 9, status: 2 },
-            "30/1": { staff: 3, status: 2 },
-            "41/1": { staff: 9, status: 2 },
-            "62/1": { staff: 2, status: 2 },
-            "65/1": { staff: 3, status: 2 },
+            "10/1": { staff: 2, status: 2 }, "12/1": { staff: 3, status: 2 },
+            "40/1": { staff: 9, status: 2 }, "40/2": { staff: 9, status: 2 },
+            "30/1": { staff: 3, status: 2 }, "41/1": { staff: 9, status: 2 },
+            "62/1": { staff: 2, status: 2 }, "65/1": { staff: 3, status: 2 },
             "21/1": { staff: 6, status: 2 }
         };
 
         let activeMissions = [], selectedVehicles = [], selectedMissionId = null;
-        let xp = 0, lvl = 1, staffMax = 45, staffCurrent = 45;
+        let xp = 0, lvl = 1, staffMax = 45, staffCurrent = 45, money = 0;
 
-        // SOUND ENGINE
-        function playTone(freq, type, duration, vol) {
+        function logFunk(msg) {
+            const log = document.getElementById('radio-log');
+            const time = new Date().toLocaleTimeString('de-DE', {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+            log.innerHTML = `<div>[${time}] ${msg}</div>` + log.innerHTML;
+        }
+
+        function playTone(freq, duration, vol) {
             if(!audioCtx) return;
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
-            osc.type = type;
             osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
             gain.gain.setValueAtTime(vol, audioCtx.currentTime);
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start();
-            osc.stop(audioCtx.currentTime + duration);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + duration);
         }
 
         function playAlarm() {
-            // Klassische 5-Ton Folge (simuliert)
             const tones = [1200, 900, 1200, 900, 1500];
-            tones.forEach((t, i) => {
-                setTimeout(() => playTone(t, 'sine', 0.4, 0.1), i * 500);
-            });
+            tones.forEach((t, i) => setTimeout(() => playTone(t, 0.4, 0.1), i * 500));
         }
 
         function startGame() {
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             document.getElementById('start-overlay').style.display = 'none';
-            playTone(800, 'sine', 0.2, 0.05); // Start Piep
             setInterval(triggerMission, 18000);
             triggerMission();
         }
 
-        // INIT UI
         Object.keys(vehicles).forEach(v => {
             document.getElementById('garage').innerHTML += `
                 <button class="v-btn" id="btn-${v}" onclick="toggleV('${v}')">
@@ -149,15 +140,14 @@
             } else {
                 selectedVehicles.push(v);
                 document.getElementById('btn-'+v).classList.add('selected');
-                playTone(1000, 'sine', 0.05, 0.02);
             }
         }
 
         const missionPool = [
-            { t: "Keller unter Wasser", r: ["65/1"], staff: 3, xp: 40 },
-            { t: "Baum auf Straße", r: ["40/1"], staff: 6, xp: 60 },
-            { t: "Zimmerbrand", r: ["12/1", "40/1", "30/1"], staff: 15, xp: 250 },
-            { t: "VU Person klemmt", r: ["10/1", "40/1", "62/1"], staff: 13, xp: 200 }
+            { t: "Keller unter Wasser", staff: 3, xp: 40, reward: 50 },
+            { t: "Baum auf Straße", staff: 6, xp: 60, reward: 80 },
+            { t: "Zimmerbrand", staff: 15, xp: 250, reward: 300 },
+            { t: "VU Person klemmt", staff: 13, xp: 200, reward: 250 }
         ];
 
         function triggerMission() {
@@ -165,24 +155,25 @@
             const m = {...missionPool[Math.floor(Math.random()*missionPool.length)], id: Math.random(), x: 15+Math.random()*70, y: 15+Math.random()*70};
             activeMissions.push(m);
             playAlarm();
+            logFunk("ALARM: " + m.t);
             updateUI();
         }
 
         function updateUI() {
             const area = document.getElementById('mission-area');
-            area.innerHTML = activeMissions.length === 0 ? '<div style="text-align:center; padding:20px; color:#555; font-size:0.8em;">Warten auf Notruf...</div>' : '';
+            area.innerHTML = activeMissions.length === 0 ? '<div style="text-align:center; padding:20px; color:#555;">Funkstille...</div>' : '';
             activeMissions.forEach((m, i) => {
                 const div = document.createElement('div');
                 div.className = `m-card ${selectedMissionId === m.id ? 'selected' : ''}`;
-                div.onclick = () => { selectedMissionId = m.id; updateUI(); playTone(1200, 'sine', 0.05, 0.02); };
-                div.innerHTML = `<div style="display:flex; justify-content:space-between; font-size:0.85em;"><b>${m.t}</b> <span style="color:var(--s3)">${m.staff} 👩‍🚒</span></div>
-                                 <div style="font-size:0.65em; color:#aaa; margin-top:4px;">Bedarf: ${m.r.join(", ")}</div>`;
+                div.onclick = () => { selectedMissionId = m.id; updateUI(); };
+                div.innerHTML = `<b>${m.t}</b><br><small>Min. Personal: ${m.staff} | Belohnung: ${m.reward} €</small>`;
                 area.appendChild(div);
                 const dot = document.getElementById('dot'+i);
                 dot.style.display = "flex"; dot.style.left = m.x+"%"; dot.style.top = m.y+"%";
             });
             [0,1,2].forEach(i => { if(i >= activeMissions.length) document.getElementById('dot'+i).style.display="none"; });
             document.getElementById('staff-count').innerText = staffCurrent;
+            document.getElementById('money-count').innerText = money;
             Object.keys(vehicles).forEach(v => {
                 const btn = document.getElementById('btn-'+v);
                 btn.disabled = (vehicles[v].status !== 2);
@@ -206,26 +197,28 @@
             staffCurrent -= usedStaff;
             selectedVehicles = []; selectedMissionId = null;
             document.querySelectorAll('.v-btn').forEach(b => b.classList.remove('selected'));
-            playTone(600, 'square', 0.2, 0.05); // Funk-Piep
-
+            
+            logFunk("S3: Fahrzeuge rücken aus.");
             ve.forEach(v => vehicles[v].status = 3);
             updateUI();
 
             setTimeout(() => {
+                logFunk("S4: Ankunft am Einsatzort.");
                 ve.forEach(v => vehicles[v].status = 4);
                 updateUI();
                 setTimeout(() => {
+                    logFunk("Einsatz beendet. Rückfahrt.");
                     activeMissions.splice(mIdx, 1);
-                    xp += m.xp; if(xp >= lvl*500) { lvl++; xp=0; }
+                    money += m.reward;
+                    xp += m.xp; if(xp >= lvl*500) { lvl++; xp=0; logFunk("Beförderung auf LVL " + lvl); }
                     document.getElementById('lvl').innerText = lvl;
-                    document.getElementById('xp-fill').style.width = (xp/(lvl*500)*100)+"%";
                     ve.forEach(v => vehicles[v].status = 1);
                     updateUI();
                     setTimeout(() => {
                         ve.forEach(v => vehicles[v].status = 2);
                         staffCurrent += usedStaff;
+                        logFunk("Fahrzeuge wieder einsatzbereit.");
                         updateUI();
-                        playTone(1000, 'sine', 0.1, 0.05); // Status 2 Bestätigung
                     }, 8000);
                 }, 10000);
             }, 3000);
