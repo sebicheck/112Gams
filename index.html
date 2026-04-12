@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LST SIM - Beta 2.8 (Mobile UI Fix)</title>
+    <title>LST SIM - Beta 3.0</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         :root { 
@@ -13,10 +13,9 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; -webkit-tap-highlight-color: transparent; }
         
         body { 
-            /* NEU: 100dvh verhindert das Abschneiden durch die Handy-Adressleiste */
             height: 100dvh; width: 100vw; overflow: hidden; 
             background: var(--bg); color: var(--text); 
-            display: flex; flex-direction: column; 
+            display: flex; flex-direction: column; position: fixed; 
         }
 
         #start-overlay { 
@@ -58,11 +57,10 @@
         .m-addr { font-size: 0.75em; color: var(--s3); font-weight: bold; display: block; margin-bottom: 3px; }
         .m-title { font-size: 1.05em; font-weight: bold; display: block; }
         .m-reward { background: #12141a; color: var(--s2); font-size: 0.8em; font-weight: bold; padding: 4px 8px; border-radius: 8px; border: 1px solid #333; }
-        .req-tag { background: #333; color: var(--s1); padding: 2px 6px; border-radius: 4px; font-size: 0.7em; font-weight: bold; margin-right: 4px; border: 1px solid #444; }
+        .req-tag { background: #333; color: var(--s1); padding: 2px 6px; border-radius: 4px; font-size: 0.7em; font-weight: bold; margin-right: 4px; border: 1px solid #444; display: inline-block; margin-bottom: 4px; }
 
         .bottom-nav { 
             background: var(--sidebar); 
-            /* NEU: Flex-Shrink 0 und iOS Safe-Area Padding für moderne Handys */
             padding: 12px 12px calc(12px + env(safe-area-inset-bottom)); 
             border-top: 1px solid #333; z-index: 2000; flex-shrink: 0; 
         }
@@ -80,9 +78,9 @@
     <div id="start-overlay">
         <div class="start-card">
             <h1>LST SIM</h1>
-            <p style="color:var(--s1); font-weight: bold; margin-bottom: 25px;">Beta 2.8 - Mobile UI Fix</p>
+            <p style="color:var(--s1); font-weight: bold; margin-bottom: 25px;">Beta 3.0 - Fahrzeugbrand</p>
             <button id="btn-continue" class="btn btn-blue" style="display:none;" onclick="continueGame()">WEITERSPIELEN</button>
-            <div id="btn-divider" style="height: 1px; background: rgba(255,255,255,0.1); margin: 15px 0; display:none;"></div>
+            <div id="btn-divider" style="height: 1px; background: rgba(255,255,255,0.1); margin: 20px 0; display:none;"></div>
             <button class="btn btn-green" onclick="startGame('easy')">LEICHT (2.000 €)</button>
             <button class="btn btn-yellow" onclick="startGame('medium')">MITTEL (800 €)</button>
             <button class="btn btn-red" onclick="startGame('hard')">SCHWER (300 €)</button>
@@ -114,15 +112,11 @@
     <div id="set-mod" class="modal">
         <div class="card" style="background: var(--sidebar); padding: 25px; border-radius: 20px; width: 100%; max-width: 400px;">
             <h3 style="margin-bottom:15px; text-align:center;">⚙️ Einstellungen</h3>
-            
             <label style="font-size: 0.9em; color: var(--s1); font-weight: bold;">Einsatz-Intervall: <b id="freq-val">30</b> Sekunden</label>
             <input type="range" id="freq-slider" min="10" max="90" step="5" value="30" oninput="updateFreq(this.value)" style="width:100%; margin: 10px 0 25px 0;">
-            
             <button id="sound-btn" class="btn btn-green" onclick="toggleSound()">SOUND: AN</button>
             <button class="btn btn-blue" onclick="goHome(); document.getElementById('set-mod').style.display='none'">🏠 ZUM HAUPTMENÜ</button>
-            
             <hr style="border: 0; border-top: 1px solid #444; margin: 15px 0;">
-            
             <button class="btn btn-red" onclick="resetGame()">SPIELSTAND LÖSCHEN</button>
             <button class="btn btn-yellow" style="color:black;" onclick="document.getElementById('set-mod').style.display='none'">SCHLIESSEN</button>
         </div>
@@ -142,15 +136,19 @@
         let gameRunning = false, spawnTimer = null, missionFreq = 30, countdown = 5, soundEnabled = true, diffMult = 1.0, lvlStep = 10;
         let audioCtx = null;
 
-        const SAVE_KEY = 'lst_sim_v2.8';
+        const SAVE_KEY = 'lst_sim_v3.0';
 
         const streetNames = ["Hauptstraße", "Bürgermeister-Wohlfarth-Str.", "Haunstetter Str.", "Gartenstraße", "Landsberger Str.", "Finkenweg", "Heidestraße", "Guldenstraße", "Messerschmittstr.", "Königsallee"];
         
         const missionPool = [
-            { t: "Zimmerbrand", req: ["ELW", "LF", "DLK"], reward: 1500, duration: 60000 },
-            { t: "Ölspur", req: ["GW"], reward: 200, duration: 20000 },
+            { t: "Katze auf Baum", req: ["DLK"], reward: 150, duration: 15000 },
+            { t: "Mülltonnenbrand", req: ["LF"], reward: 250, duration: 25000 },
+            { t: "Fahrzeugbrand", req: ["LF"], reward: 500, duration: 35000 },
+            { t: "Ölspur klein", req: ["GW"], reward: 200, duration: 20000 },
             { t: "Keller unter Wasser", req: ["LF"], reward: 400, duration: 40000 },
-            { t: "VU - Eingeklemmt", req: ["ELW", "LF", "GW"], reward: 2000, duration: 90000 }
+            { t: "Zimmerbrand", req: ["ELW", "LF", "DLK"], reward: 1500, duration: 60000 },
+            { t: "VU - Person klemmt", req: ["ELW", "LF", "GW"], reward: 2000, duration: 90000 },
+            { t: "Dachstuhlbrand", req: ["ELW", "LF", "LF", "DLK"], reward: 3000, duration: 120000 }
         ];
 
         const shopItems = [
@@ -245,11 +243,7 @@
             if(spawnTimer) clearInterval(spawnTimer);
             spawnTimer = setInterval(() => {
                 if(!gameRunning) return;
-                
-                let maxMissions = 2; // Level 1 bis 3
-                if(lvl >= 4) maxMissions = 3; // Level 4 und 5
-                if(lvl >= 6) maxMissions = 4; // Ab Level 6
-
+                let maxMissions = (lvl >= 6) ? 4 : (lvl >= 4) ? 3 : 2;
                 if(activeMissions.length < maxMissions) {
                     countdown--;
                     if(countdown <= 0) {
@@ -262,16 +256,22 @@
 
         function spawnMission() {
             const ownedTypes = Object.values(vehicles).map(v => v.type);
-            const possible = missionPool.filter(m => m.req.every(r => ownedTypes.includes(r)));
+            const possible = missionPool.filter(m => {
+                let temp = [...ownedTypes];
+                return m.req.every(req => {
+                    let idx = temp.indexOf(req);
+                    if(idx > -1) { temp.splice(idx, 1); return true; }
+                    return false;
+                });
+            });
+
             if(!possible.length) return;
-            
             const m = possible[Math.floor(Math.random()*possible.length)];
             const lat = 48.268 + (Math.random()-0.5)*0.015, lng = 10.891 + (Math.random()-0.5)*0.02;
             const marker = L.circleMarker([lat, lng], {color:'red', radius:10}).addTo(map);
+            const street = streetNames[Math.floor(Math.random()*streetNames.length)] + " " + (Math.floor(Math.random()*60)+1);
             
-            const streetName = streetNames[Math.floor(Math.random()*streetNames.length)] + " " + (Math.floor(Math.random()*60)+1);
-            
-            activeMissions.push({...m, id: Math.random(), lat, lng, marker, processing: false, addr: streetName});
+            activeMissions.push({...m, id: Math.random(), lat, lng, marker, processing: false, addr: street});
             playAlarm();
             updateUI();
         }
@@ -280,21 +280,18 @@
             document.getElementById('money-count').innerText = Math.floor(money).toLocaleString();
             document.getElementById('lvl-display').innerText = lvl;
             document.getElementById('m-progress').innerText = `${doneMissions}/${lvl * lvlStep}`;
-            
             const area = document.getElementById('mission-area'); area.innerHTML = "";
             activeMissions.forEach(m => {
                 const card = document.createElement('div');
                 card.className = `m-card ${selectedMissionId === m.id ? 'selected' : ''} ${m.processing ? 'processing' : ''}`;
-                
-                const exactReward = Math.floor(m.reward * diffMult);
+                const reward = Math.floor(m.reward * diffMult);
                 card.innerHTML = `
                     <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                         <div><span class="m-addr">📍 ${m.addr}</span><span class="m-title">${m.t}</span></div>
-                        <span class="m-reward">+ ${exactReward} €</span>
+                        <span class="m-reward">+ ${reward} €</span>
                     </div>
                     <div style="margin-top:8px;">${m.req.map(r => `<span class="req-tag">${r}</span>`).join("")}</div>
                 `;
-                
                 card.onclick = () => { selectedMissionId = m.id; updateUI(); map.panTo([m.lat, m.lng]); };
                 area.appendChild(card);
             });
@@ -340,10 +337,7 @@
                 return true;
             });
 
-            if(missing.length > 0) {
-                alert("Nicht genug/falsche Fahrzeuge! Es fehlen: " + missing.join(", "));
-                return;
-            }
+            if(missing.length > 0) { alert("Es fehlen Fahrzeuge: " + missing.join(", ")); return; }
 
             m.processing = true;
             const sent = [...selectedVehicles]; selectedVehicles = []; selectedMissionId = null;
@@ -355,7 +349,7 @@
                     if(m.marker) map.removeLayer(m.marker);
                     activeMissions = activeMissions.filter(x => x.id !== m.id);
                     money += (m.reward * diffMult); doneMissions++;
-                    if(doneMissions >= (lvl * lvlStep)) { doneMissions = 0; lvl++; alert("LEVEL UP! Neues Limit erreicht."); }
+                    if(doneMissions >= (lvl * lvlStep)) { doneMissions = 0; lvl++; alert("LEVEL UP!"); }
                     sent.forEach(v => vehicles[v].status = 1); updateUI();
                     setTimeout(() => { sent.forEach(v => vehicles[v].status = 2); updateUI(); saveGame(); }, 5000);
                 }, m.duration);
@@ -367,7 +361,7 @@
             shopItems.forEach(i => {
                 const locked = lvl < i.l;
                 list.innerHTML += `<div class="shop-item" style="border-color: ${locked ? '#444' : '#383e4d'}; opacity: ${locked ? '0.7' : '1'};">
-                    <span><b>${i.n}</b> ${locked ? '🔒' : ''}<br><small>${i.p} €</small> ${locked ? `<br><small style="color:var(--s4)">Benötigt Level ${i.l}</small>` : ''}</span>
+                    <span><b>${i.n}</b> ${locked ? '🔒' : ''}<br><small>${i.p} €</small> ${locked ? `<br><small style="color:var(--s4)">Ab Level ${i.l}</small>` : ''}</span>
                     <button class="btn ${locked ? 'btn-red' : 'btn-green'}" style="width:auto; padding:8px 15px; margin:0;" ${locked || money < i.p ? 'disabled' : ''} onclick="buyVehicle('${i.t}', ${i.p})">${locked ? 'GESPERRT' : 'KAUFEN'}</button>
                 </div>`;
             });
