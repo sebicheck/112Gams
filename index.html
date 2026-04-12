@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ILS Königsbrunn Pro</title>
+    <title>ILS Königsbrunn - Realismus Modus</title>
     <style>
         :root { 
             --s1: #42a5f5; --s2: #66bb6a; --s3: #fdd835; --s4: #ef5350;
@@ -12,37 +12,30 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
         html, body { height: 100%; width: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: sans-serif; }
 
-        /* START SCREEN */
         #start-overlay { position: fixed; inset: 0; background: #0f111a; display: flex; align-items: center; justify-content: center; z-index: 9999; }
         .start-card { background: var(--sidebar); padding: 30px; border-radius: 20px; border: 2px solid var(--accent); text-align: center; width: 90%; max-width: 350px; }
         .start-btn { width: 100%; padding: 15px; border-radius: 10px; border: none; background: var(--accent); color: white; font-weight: bold; margin-top: 20px; cursor: pointer; }
 
-        /* HEADER & STATS */
         header { background: var(--sidebar); padding: 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--accent); }
         .top-info { background: #12141a; padding: 6px 12px; display: flex; justify-content: space-between; font-size: 0.75em; border-bottom: 1px solid #333; }
-        .money { color: #ffca28; font-weight: bold; }
-
-        /* MAP */
+        
         #map { height: 18vh; background: #1b211b; position: relative; border-bottom: 1px solid #333; flex-shrink: 0; }
         .marker { position: absolute; width: 22px; height: 22px; background: var(--accent); border-radius: 50%; border: 2px solid white; transform: translate(-50%, -50%); display: none; align-items: center; justify-content: center; font-weight: bold; font-size: 11px; z-index: 10; }
 
-        /* LOGBUCH (Neu!) */
-        #radio-log { height: 60px; background: #000; color: #4caf50; font-family: monospace; font-size: 0.7em; padding: 5px 10px; overflow-y: hidden; border-bottom: 1px solid #333; }
-        #radio-log div { border-left: 2px solid #4caf50; padding-left: 5px; margin-bottom: 2px; }
+        #radio-log { height: 80px; background: #000; color: #4caf50; font-family: monospace; font-size: 0.7em; padding: 8px; overflow-y: hidden; border-bottom: 1px solid #333; }
+        #radio-log div { border-left: 2px solid #4caf50; padding-left: 5px; margin-bottom: 3px; opacity: 0.9; }
 
-        /* MISSION AREA */
         #mission-area { flex-grow: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; background: #14161e; }
-        .m-card { background: var(--sidebar); border-radius: 10px; padding: 10px; border: 1px solid #333; font-size: 0.85em; }
+        .m-card { background: var(--sidebar); border-radius: 10px; padding: 12px; border: 1px solid #333; }
         .m-card.selected { border-color: var(--s1); background: #252833; }
 
-        /* GARAGE */
         .bottom-ui { flex-shrink: 0; background: var(--sidebar); border-top: 1px solid #333; padding: 10px; padding-bottom: 25px; }
         .garage { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 10px; }
-        .v-btn { background: #2c2f3a; border: none; color: white; padding: 14px 0; border-radius: 8px; font-size: 0.8em; font-weight: bold; position: relative; }
+        .v-btn { background: #2c2f3a; border: none; color: white; padding: 14px 0; border-radius: 8px; font-size: 0.8em; font-weight: bold; position: relative; transition: 0.3s; }
         .v-btn.selected { background: var(--s1); }
         .v-btn span { position: absolute; top: -4px; right: -4px; background: #444; border-radius: 50%; width: 16px; height: 16px; font-size: 9px; display: flex; align-items: center; justify-content: center; border: 1px solid #fff; }
 
-        #send-btn { width: 100%; padding: 16px; border-radius: 10px; border: none; background: var(--accent); color: white; font-weight: bold; }
+        #send-btn { width: 100%; padding: 16px; border-radius: 10px; border: none; background: var(--accent); color: white; font-weight: bold; font-size: 1em; }
     </style>
 </head>
 <body>
@@ -50,7 +43,7 @@
     <div id="start-overlay">
         <div class="start-card">
             <h1 style="color:var(--accent)">ILS KÖNIGSBRUNN</h1>
-            <p style="margin-top:10px; font-size:0.8em">Simulation wird geladen...</p>
+            <p style="margin-top:10px; font-size:0.8em">Realismus-Modus aktiviert</p>
             <button class="start-btn" onclick="startGame()">DIENST ANTRETEN</button>
         </div>
     </div>
@@ -62,7 +55,7 @@
 
     <div class="top-info">
         <span>👩‍🚒 Personal: <b id="staff-count">45</b></span>
-        <span class="money">💰 <span id="money-count">0</span> €</span>
+        <span style="color: #ffca28">💰 <span id="money-count">0</span> €</span>
         <span>LVL <b id="lvl">1</b></span>
     </div>
 
@@ -73,7 +66,7 @@
     </div>
 
     <div id="radio-log">
-        <div>> System bereit. Warten auf Notruf...</div>
+        <div>> Funkkanal 1 offen. Warten auf Meldungen...</div>
     </div>
 
     <div id="mission-area"></div>
@@ -98,7 +91,7 @@
 
         function logFunk(msg) {
             const log = document.getElementById('radio-log');
-            const time = new Date().toLocaleTimeString('de-DE', {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+            const time = new Date().toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'});
             log.innerHTML = `<div>[${time}] ${msg}</div>` + log.innerHTML;
         }
 
@@ -114,14 +107,22 @@
 
         function playAlarm() {
             const tones = [1200, 900, 1200, 900, 1500];
-            tones.forEach((t, i) => setTimeout(() => playTone(t, 0.4, 0.1), i * 500));
+            tones.forEach((t, i) => setTimeout(() => playTone(t, 0.4, 0.05), i * 500));
         }
 
         function startGame() {
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             document.getElementById('start-overlay').style.display = 'none';
-            setInterval(triggerMission, 18000);
-            triggerMission();
+            scheduleNextMission();
+        }
+
+        // Zufälliger Abstand zwischen Einsätzen (45s bis 90s)
+        function scheduleNextMission() {
+            const delay = Math.floor(Math.random() * (90000 - 45000) + 45000);
+            setTimeout(() => {
+                triggerMission();
+                scheduleNextMission();
+            }, delay);
         }
 
         Object.keys(vehicles).forEach(v => {
@@ -143,11 +144,13 @@
             }
         }
 
+        // Realistischere Einsatzarten mit Zeitdauer (in Millisekunden)
         const missionPool = [
-            { t: "Keller unter Wasser", staff: 3, xp: 40, reward: 50 },
-            { t: "Baum auf Straße", staff: 6, xp: 60, reward: 80 },
-            { t: "Zimmerbrand", staff: 15, xp: 250, reward: 300 },
-            { t: "VU Person klemmt", staff: 13, xp: 200, reward: 250 }
+            { t: "Keller unter Wasser", staff: 3, xp: 60, reward: 50, duration: 80000 },
+            { t: "Baum auf Straße", staff: 6, xp: 80, reward: 80, duration: 60000 },
+            { t: "Zimmerbrand", staff: 15, xp: 300, reward: 400, duration: 180000 },
+            { t: "BMA Fehlalarm", staff: 12, xp: 10, reward: 20, duration: 40000 },
+            { t: "VU Person klemmt", staff: 18, xp: 400, reward: 500, duration: 240000 }
         ];
 
         function triggerMission() {
@@ -161,12 +164,12 @@
 
         function updateUI() {
             const area = document.getElementById('mission-area');
-            area.innerHTML = activeMissions.length === 0 ? '<div style="text-align:center; padding:20px; color:#555;">Funkstille...</div>' : '';
+            area.innerHTML = activeMissions.length === 0 ? '<div style="text-align:center; padding:20px; color:#555;">Derzeit keine gemeldeten Einsätze.</div>' : '';
             activeMissions.forEach((m, i) => {
                 const div = document.createElement('div');
                 div.className = `m-card ${selectedMissionId === m.id ? 'selected' : ''}`;
                 div.onclick = () => { selectedMissionId = m.id; updateUI(); };
-                div.innerHTML = `<b>${m.t}</b><br><small>Min. Personal: ${m.staff} | Belohnung: ${m.reward} €</small>`;
+                div.innerHTML = `<b>${m.t}</b><br><small>Min. Personal: ${m.staff} | Dauer: ~${Math.round(m.duration/60000)} Min.</small>`;
                 area.appendChild(div);
                 const dot = document.getElementById('dot'+i);
                 dot.style.display = "flex"; dot.style.left = m.x+"%"; dot.style.top = m.y+"%";
@@ -177,7 +180,8 @@
             Object.keys(vehicles).forEach(v => {
                 const btn = document.getElementById('btn-'+v);
                 btn.disabled = (vehicles[v].status !== 2);
-                btn.style.opacity = (vehicles[v].status === 2) ? "1" : "0.2";
+                btn.style.background = vehicles[v].status === 3 ? 'var(--s3)' : vehicles[v].status === 4 ? 'var(--s4)' : vehicles[v].status === 1 ? 'var(--s1)' : '#2c2f3a';
+                btn.style.opacity = (vehicles[v].status === 2) ? "1" : "0.7";
             });
         }
 
@@ -189,7 +193,7 @@
             selectedVehicles.forEach(v => totalStaff += vehicles[v].staff);
 
             if(totalStaff < m.staff || staffCurrent < totalStaff) {
-                alert("Personalmangel!"); return;
+                alert("Personalmangel für diese Lage!"); return;
             }
 
             const ve = [...selectedVehicles];
@@ -198,30 +202,37 @@
             selectedVehicles = []; selectedMissionId = null;
             document.querySelectorAll('.v-btn').forEach(b => b.classList.remove('selected'));
             
-            logFunk("S3: Fahrzeuge rücken aus.");
+            // Ablauf
+            logFunk(ve.join(", ") + " rücken aus (S3).");
             ve.forEach(v => vehicles[v].status = 3);
             updateUI();
 
+            // Längere Anfahrt (15-25 Sekunden)
+            const anfahrt = Math.random() * 10000 + 15000;
             setTimeout(() => {
-                logFunk("S4: Ankunft am Einsatzort.");
+                logFunk(ve[0] + " & weitere: Ankunft am Einsatzort (S4).");
                 ve.forEach(v => vehicles[v].status = 4);
                 updateUI();
+
+                // Individuelle Einsatzdauer aus dem Pool
                 setTimeout(() => {
-                    logFunk("Einsatz beendet. Rückfahrt.");
+                    logFunk("Lage abgearbeitet. Fahrzeuge rücken ein (S1).");
                     activeMissions.splice(mIdx, 1);
                     money += m.reward;
-                    xp += m.xp; if(xp >= lvl*500) { lvl++; xp=0; logFunk("Beförderung auf LVL " + lvl); }
+                    xp += m.xp; if(xp >= lvl*500) { lvl++; xp=0; logFunk("--- BEFÖRDERUNG: LEVEL " + lvl + " ---"); }
                     document.getElementById('lvl').innerText = lvl;
                     ve.forEach(v => vehicles[v].status = 1);
                     updateUI();
+
+                    // Längere Rückfahrt (20 Sekunden)
                     setTimeout(() => {
                         ve.forEach(v => vehicles[v].status = 2);
                         staffCurrent += usedStaff;
-                        logFunk("Fahrzeuge wieder einsatzbereit.");
+                        logFunk(ve.join(", ") + " wieder einsatzbereit auf Wache (S2).");
                         updateUI();
-                    }, 8000);
-                }, 10000);
-            }, 3000);
+                    }, 20000);
+                }, m.duration);
+            }, anfahrt);
         }
 
         setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString('de-DE'); }, 1000);
