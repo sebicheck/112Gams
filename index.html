@@ -1,218 +1,256 @@
-
 <!DOCTYPE html>
 <html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ILS Königsbrunn - Sebi Edition</title>
+    <title>LST SIM - Beta 1.8</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         :root { 
             --s1: #42a5f5; --s2: #66bb6a; --s3: #fdd835; --s4: #ef5350;
             --bg: #0b0e14; --sidebar: #161a23; --accent: #d32f2f; --text: #ffffff;
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; -webkit-tap-highlight-color: transparent; }
         body { height: 100vh; overflow: hidden; background: var(--bg); color: var(--text); display: flex; flex-direction: column; }
 
-        /* --- STARTBILDSCHIRM --- */
         #start-overlay { 
-            position: fixed; inset: 0; 
-            background: linear-gradient(135deg, rgba(11,14,20,0.98) 0%, rgba(26,30,40,1) 100%);
-            display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            z-index: 20000; text-align: center;
+            position: fixed; inset: 0; background: radial-gradient(circle at center, #1e2430 0%, #0b0e14 100%);
+            display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 20000; padding: 20px;
         }
-        .start-content {
-            background: rgba(255, 255, 255, 0.03);
-            padding: 30px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.1);
-            backdrop-filter: blur(15px); max-width: 400px; width: 90%;
+        .start-card {
+            background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px); padding: 35px; border-radius: 28px; width: 100%; max-width: 400px; text-align: center;
         }
-        .version-tag { color: var(--s1); font-weight: bold; font-size: 0.8em; margin-bottom: 5px; display: block; }
-        .by-sebi { color: #888; font-size: 0.75em; margin-bottom: 20px; font-style: italic; display: block; }
         
-        .diff-selector { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
-        .btn-diff { 
-            border: none; padding: 15px; border-radius: 12px; color: white; 
-            font-weight: bold; cursor: pointer; transition: 0.2s; opacity: 0.8;
-        }
-        .btn-diff:hover { opacity: 1; transform: scale(1.02); }
-        .easy { background: var(--s2); }
-        .medium { background: var(--s3); color: #000; }
-        .hard { background: var(--s4); }
+        .btn { width: 100%; padding: 16px; margin-bottom: 12px; border-radius: 14px; border: none; font-weight: bold; cursor: pointer; font-size: 1em; transition: 0.2s; color: white; }
+        .btn-blue { background: var(--s1); border-bottom: 4px solid #1976d2; }
+        .btn-green { background: var(--s2); border-bottom: 4px solid #388e3c; }
+        .btn-yellow { background: var(--s3); color: #000; border-bottom: 4px solid #fbc02d; }
+        .btn-red { background: var(--s4); border-bottom: 4px solid #c62828; }
+        .btn:active { transform: translateY(2px); border-bottom-width: 1px; }
 
-        /* --- UI HEADER --- */
-        header { 
-            background: var(--sidebar); padding: 12px 15px; 
-            display: flex; justify-content: space-between; align-items: center; 
-            border-bottom: 2px solid var(--accent); 
-        }
-        .header-btns { display: flex; gap: 15px; align-items: center; }
-        .icon-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: white; }
-
-        .top-info { background: #12141a; padding: 8px 15px; display: flex; justify-content: space-between; font-size: 0.8em; border-bottom: 1px solid #333; }
-        #map { height: 20vh; width: 100%; filter: grayscale(1) invert(1) brightness(0.7); }
-        #mission-area { flex-grow: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 10px; }
+        header { background: var(--sidebar); padding: 12px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--accent); }
+        .top-status { background: #12141a; padding: 8px 15px; display: flex; justify-content: space-between; font-size: 0.8em; font-weight: bold; }
         
-        .m-card { background: var(--sidebar); border-radius: 12px; padding: 15px; border-left: 5px solid var(--accent); border: 1px solid #2a2e38; }
+        #map { height: 20vh; width: 100%; filter: grayscale(1) invert(1) brightness(0.75); }
+        #mission-area { flex-grow: 1; overflow-y: auto; padding: 12px; }
+        
+        .m-card { background: var(--sidebar); border-radius: 15px; padding: 15px; margin-bottom: 12px; border: 1px solid #2a2e38; border-left: 6px solid var(--accent); }
         .m-card.selected { border-color: var(--s1); background: #1e2430; }
-
-        .bottom-ui { background: var(--sidebar); padding: 15px; padding-bottom: 30px; border-top: 1px solid #333; }
-        .garage { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
-        .v-btn { background: #232731; border: 1px solid #383e4d; color: white; padding: 12px 0; border-radius: 10px; font-size: 0.8em; font-weight: bold; }
-        .v-btn.selected { background: var(--s1); border-color: #fff; }
+        .m-card.processing { border-left-color: var(--s2); opacity: 0.6; pointer-events: none; }
         
-        #send-btn { width: 100%; padding: 18px; border-radius: 12px; border: none; background: var(--accent); color: white; font-weight: 900; }
-        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 10000; }
+        .m-addr { font-size: 0.75em; color: var(--s3); font-weight: bold; display: block; margin-bottom: 3px; }
+        .m-title { font-size: 1.05em; font-weight: bold; }
+        .req-tag { background: #333; padding: 2px 8px; border-radius: 5px; margin-right: 5px; color: var(--s1); font-weight: bold; font-size: 0.75em; }
+
+        .bottom-nav { background: var(--sidebar); padding: 15px; border-top: 1px solid #333; }
+        .garage { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
+        .v-btn { background: #232731; border: 1px solid #383e4d; color: white; padding: 12px 5px; border-radius: 10px; font-size: 0.75em; font-weight: bold; }
+        
+        #send-btn { width: 100%; padding: 18px; border-radius: 16px; border: none; background: var(--accent); color: white; font-weight: 900; font-size: 1.2em; cursor: pointer; }
+
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 30000; padding: 20px; }
+        .card { background: var(--sidebar); padding: 25px; border-radius: 20px; width: 100%; max-width: 400px; }
     </style>
 </head>
 <body>
 
     <div id="start-overlay">
-        <div class="start-content">
-            <span class="version-tag">FEUERWEHR KÖNIGSBRUNN v17.0</span>
-            <span class="by-sebi">by Sebi</span>
-            <h1>Leitstelle betreten</h1>
-            <div class="diff-selector">
-                <button class="btn-diff easy" onclick="startGame('easy')">LEICHT</button>
-                <button class="btn-diff medium" onclick="startGame('medium')">MITTEL</button>
-                <button class="btn-diff hard" onclick="startGame('hard')">SCHWER</button>
-            </div>
-            <div style="margin-top:20px; font-size:0.8em; opacity:0.6">
-                Aktueller Stand: <span id="start-money">0</span> €
-            </div>
+        <div class="start-card">
+            <h1 style="font-size: 2.5em; margin-bottom: 5px;">LST SIM</h1>
+            <p style="color:var(--s1); font-weight: bold; margin-bottom: 35px;">Beta 1.8 - Königsbrunn</p>
+            
+            <button id="btn-continue" class="btn btn-blue" style="display:none;" onclick="continueGame()">WEITERSPIELEN</button>
+            <div id="btn-divider" style="height: 1px; background: rgba(255,255,255,0.1); margin: 20px 0; display:none;"></div>
+            
+            <button class="btn btn-green" onclick="startGame('easy')">LEICHT</button>
+            <button class="btn btn-yellow" onclick="startGame('medium')">MITTEL</button>
+            <button class="btn btn-red" onclick="startGame('hard')">SCHWER</button>
+            
+            <button onclick="resetGame()" style="background:none; border:none; color:#555; margin-top:20px; font-size:0.8em; text-decoration:underline;">Daten löschen</button>
         </div>
     </div>
 
     <header>
-        <button class="icon-btn" onclick="goHome()">🏠</button>
-        <b style="letter-spacing:1px">KÖNIGSBRUNN 112</b>
-        <div class="header-btns">
-            <button class="icon-btn" onclick="openShop()">🛒</button>
-            <button class="icon-btn" onclick="document.getElementById('set-mod').style.display='flex'">⚙️</button>
+        <button style="background:none; border:none; color:white; font-size:28px;" onclick="goHome()">🏠</button>
+        <b style="letter-spacing:1px;">KÖNIGSBRUNN 112</b>
+        <div style="display:flex; gap:15px">
+            <button style="background:none; border:none; color:white; font-size:28px;" onclick="openShop()">🛒</button>
+            <button style="background:none; border:none; color:white; font-size:28px;" onclick="document.getElementById('set-mod').style.display='flex'">⚙️</button>
         </div>
     </header>
 
-    <div class="top-info">
-        <span>👥 <span id="staff-count">0/0</span></span>
-        <span style="color:var(--s3)">💰 <span id="money-count">0</span> €</span>
-        <span id="diff-display" style="font-weight:bold">MITTEL</span>
+    <div class="top-status">
+        <div>💰 <span id="money-count">0</span> €</div>
+        <div id="lvl-box">⭐ LVL <span id="lvl-display">1</span> (<span id="m-progress">0/10</span>)</div>
+        <div id="mission-counter">EINSÄTZE: 0</div>
     </div>
 
     <div id="map"></div>
     <div id="mission-area"></div>
 
-    <div class="bottom-ui">
+    <div class="bottom-nav">
         <div class="garage" id="garage"></div>
-        <button id="send-btn" onclick="execute()">Einsatz senden</button>
+        <button id="send-btn" onclick="execute()">ALARM AUSLÖSEN</button>
     </div>
 
     <div id="set-mod" class="modal">
-        <div style="background:var(--sidebar); padding:25px; border-radius:20px; width:80%">
-            <h2>Optionen</h2><br>
-            <button class="btn-diff hard" onclick="resetGame()" style="width:100%">Spielstand löschen</button><br><br>
-            <button class="btn-diff easy" onclick="document.getElementById('set-mod').style.display='none'" style="width:100%">Schließen</button>
+        <div class="card">
+            <h3 style="margin-bottom:15px;">⚙️ Einstellungen</h3>
+            <label style="font-size: 0.8em; color: var(--s1);">Einsatz-Intervall: <b id="freq-val">30</b>s</label>
+            <input type="range" id="freq-slider" min="10" max="90" step="5" value="30" oninput="updateFreq(this.value)" style="width:100%; margin: 10px 0 20px 0;">
+            <button id="sound-btn" class="btn btn-green" onclick="toggleSound()">SOUND: AN</button>
+            <button class="btn btn-blue" onclick="goHome()">🏠 HAUPTMENÜ</button>
+            <button class="btn btn-yellow" style="color:black;" onclick="document.getElementById('set-mod').style.display='none'">SCHLIESSEN</button>
         </div>
     </div>
 
     <div id="shop-mod" class="modal">
-        <div style="background:var(--sidebar); padding:25px; border-radius:20px; width:85%; max-height:80vh; overflow-y:auto">
-            <h2 style="color:var(--s3)">🛒 Fahrzeugmarkt</h2><br>
-            <div id="shop-list"></div><br>
-            <button class="btn-diff easy" onclick="document.getElementById('shop-mod').style.display='none'" style="width:100%">Zurück</button>
+        <div class="card">
+            <h3>🛒 Fahrzeugmarkt</h3>
+            <div id="shop-list" style="max-height:55vh; overflow-y:auto; margin-top:15px;"></div><br>
+            <button class="btn btn-red" onclick="document.getElementById('shop-mod').style.display='none'">Zurück</button>
         </div>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        let map, money = 0, xp = 0, lvl = 1, vehicles = {}, activeMissions = [], selectedVehicles = [], selectedMissionId = null;
-        let difficulty = "medium";
-        let config = { multi: 1.0, speed: 1.0, freq: 60000 };
-        let gameStarted = false;
+        let map, money = 0, lvl = 1, doneMissions = 0, vehicles = {}, activeMissions = [], selectedVehicles = [], selectedMissionId = null;
+        let gameRunning = false, spawnTimer = null, missionFreq = 30, countdown = 5, soundEnabled = true, diffMult = 1.0, lvlStep = 10;
+        let audioCtx = null;
 
-        const masterPool = [
-            { t: "Ölspur", staff: 2, req: ["GW"], xp: 30, reward: 150, duration: 20000 },
-            { t: "Keller unter Wasser", staff: 3, req: ["LF"], xp: 50, reward: 250, duration: 40000 },
-            { t: "Zimmerbrand", staff: 14, req: ["ELW", "LF", "DLK"], xp: 400, reward: 1200, duration: 100000 },
-            { t: "VU eingeklemmt", staff: 12, req: ["ELW", "LF", "GW"], xp: 350, reward: 1000, duration: 120000 }
+        const streetNames = ["Hauptstraße", "Bürgermeister-Wohlfarth-Str.", "Haunstetter Str.", "Gartenstraße", "Landsberger Str.", "Finkenweg", "Heidestraße", "Guldenstraße", "Messerschmittstr.", "Königsallee"];
+        
+        // LÄNGERE EINSATZDAUER (in ms)
+        const missionPool = [
+            { t: "Ölspur klein", req: ["GW"], reward: 200, duration: 45000 },
+            { t: "Zimmerbrand", req: ["ELW", "LF", "DLK"], reward: 1800, duration: 120000 },
+            { t: "Keller unter Wasser", req: ["LF"], reward: 350, duration: 60000 },
+            { t: "Mülltonnenbrand", req: ["LF"], reward: 250, duration: 25000 },
+            { t: "VU - Person klemmt", req: ["ELW", "LF", "GW"], reward: 2200, duration: 150000 },
+            { t: "Katze auf Baum", req: ["DLK"], reward: 150, duration: 15000 }
         ];
 
-        window.onload = () => {
-            const s = localStorage.getItem('ils_save');
-            if(s) document.getElementById('start-money').innerText = JSON.parse(s).money;
-        };
+        window.onload = () => { checkSave(); };
 
-        function startGame(diff) {
-            difficulty = diff;
-            if(diff === 'easy') { config = { multi: 1.5, speed: 0.5, freq: 45000 }; }
-            else if(diff === 'hard') { config = { multi: 0.7, speed: 2.0, freq: 90000 }; }
-            else { config = { multi: 1.0, speed: 1.0, freq: 60000 }; }
-            
-            document.getElementById('diff-display').innerText = diff.toUpperCase();
-            document.getElementById('diff-display').style.color = diff === 'easy' ? 'var(--s2)' : (diff === 'hard' ? 'var(--s4)' : 'var(--s3)');
-            
-            if(!gameStarted) {
-                loadGame();
-                map = L.map('map', {zoomControl:false}).setView([48.268, 10.891], 14);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-                loop();
-                gameStarted = true;
+        function checkSave() {
+            if(localStorage.getItem('lst_sim_beta_1.8')) {
+                document.getElementById('btn-continue').style.display = 'block';
+                document.getElementById('btn-divider').style.display = 'block';
+            } else {
+                document.getElementById('btn-continue').style.display = 'none';
+                document.getElementById('btn-divider').style.display = 'none';
+            }
+        }
+
+        function getLvlTarget() { return lvl * lvlStep; }
+
+        function updateFreq(v) { 
+            missionFreq = parseInt(v); 
+            document.getElementById('freq-val').innerText = v; 
+            saveGame(); 
+        }
+
+        function playAlarm() {
+            if (!soundEnabled) return;
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const playTone = (freq, start, duration) => {
+                const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+                osc.type = 'sine'; osc.frequency.setValueAtTime(freq, audioCtx.currentTime + start);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime + start);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + start + duration);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(audioCtx.currentTime + start); osc.stop(audioCtx.currentTime + start + duration);
+            };
+            playTone(880, 0, 0.4); playTone(659, 0.2, 0.4); playTone(523, 0.4, 0.6);
+        }
+
+        function saveGame() {
+            localStorage.setItem('lst_sim_beta_1.8', JSON.stringify({money, lvl, vehicles, doneMissions, diff: diffMult, step: lvlStep, freq: missionFreq}));
+        }
+
+        function startGame(mode) {
+            money = (mode === 'easy') ? 2000 : (mode === 'hard') ? 300 : 800;
+            diffMult = (mode === 'easy') ? 1.3 : (mode === 'hard') ? 0.8 : 1.0;
+            lvlStep = (mode === 'easy') ? 10 : (mode === 'hard') ? 15 : 12;
+            vehicles = {"10/1":{type:"ELW",status:2}, "40/1":{type:"LF",status:2}};
+            lvl = 1; doneMissions = 0; activeMissions = [];
+            saveGame();
+            continueGame();
+        }
+
+        function continueGame() {
+            const data = localStorage.getItem('lst_sim_beta_1.8');
+            if(data) {
+                const d = JSON.parse(data);
+                money = d.money; lvl = d.lvl; vehicles = d.vehicles; doneMissions = d.doneMissions; 
+                diffMult = d.diff; lvlStep = d.step; missionFreq = d.freq || 30;
+                document.getElementById('freq-slider').value = missionFreq;
+                document.getElementById('freq-val').innerText = missionFreq;
             }
             document.getElementById('start-overlay').style.display = 'none';
-        }
-
-        function goHome() {
-            document.getElementById('start-money').innerText = Math.floor(money);
-            document.getElementById('start-overlay').style.display = 'flex';
-        }
-
-        function loadGame() {
-            const s = localStorage.getItem('ils_save');
-            if(s) { const d = JSON.parse(s); money=d.money; xp=d.xp; lvl=d.lvl; vehicles=d.vehicles; }
-            else { vehicles = {"10/1":{staff:2,type:"ELW",status:2}, "40/1":{staff:9,type:"LF",status:2}}; money=1000; }
-            updateUI(); renderGarage();
-        }
-
-        function saveGame() { localStorage.setItem('ils_save', JSON.stringify({money, xp, lvl, vehicles})); }
-
-        function loop() {
-            setTimeout(() => { if(activeMissions.length < 5) tryTrigger(); loop(); }, config.freq);
-        }
-
-        function tryTrigger() {
-            let myTypes = Object.values(vehicles).map(v => v.type);
-            let possible = masterPool.filter(m => {
-                let t = [...myTypes];
-                for(let r of m.req) { let i = t.indexOf(r); if(i===-1) return false; t.splice(i,1); }
-                return true;
-            });
-            if(possible.length > 0) {
-                const mData = possible[Math.floor(Math.random()*possible.length)];
-                const lat = 48.268 + (Math.random()-0.5)*0.02, lng = 10.891 + (Math.random()-0.5)*0.02;
-                activeMissions.push({...mData, id:Math.random(), lat, lng, marker: L.circleMarker([lat, lng], {color:'red', radius:8}).addTo(map)});
-                updateUI();
+            gameRunning = true;
+            if(!map) {
+                map = L.map('map', {zoomControl:false, attributionControl:false}).setView([48.268, 10.891], 14);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
             }
+            startSpawner(); updateUI(); renderGarage();
+        }
+
+        function goHome() { 
+            saveGame(); 
+            gameRunning = false; 
+            if(spawnTimer) clearInterval(spawnTimer); 
+            document.getElementById('set-mod').style.display = 'none';
+            document.getElementById('start-overlay').style.display = 'flex'; 
+            checkSave();
+        }
+
+        function startSpawner() {
+            if(spawnTimer) clearInterval(spawnTimer);
+            spawnTimer = setInterval(() => {
+                if(!gameRunning) return;
+                let maxMissions = (lvl >= 7) ? 4 : (lvl >= 3) ? 3 : 2;
+                if(activeMissions.length < maxMissions) {
+                    countdown--;
+                    if(countdown <= 0) { spawnMission(); countdown = missionFreq; }
+                }
+            }, 1000);
+        }
+
+        function spawnMission() {
+            const ownedTypes = Object.values(vehicles).map(v => v.type);
+            const possible = missionPool.filter(m => m.req.every(r => ownedTypes.includes(r)));
+            if(!possible.length) return;
+            const m = possible[Math.floor(Math.random()*possible.length)];
+            const lat = 48.268 + (Math.random()-0.5)*0.02, lng = 10.891 + (Math.random()-0.5)*0.03;
+            const street = streetNames[Math.floor(Math.random()*streetNames.length)] + " " + (Math.floor(Math.random()*60)+1);
+            const marker = L.circleMarker([lat, lng], {color:'red', radius:10, fillOpacity:0.8}).addTo(map);
+            activeMissions.push({...m, id: Math.random(), lat, lng, addr: street, marker, processing: false});
+            playAlarm();
+            updateUI();
         }
 
         function updateUI() {
-            document.getElementById('money-count').innerText = Math.floor(money);
-            let totalS = Object.values(vehicles).reduce((a,b) => a+b.staff, 0);
-            let busyS = 0; Object.values(vehicles).forEach(v => { if(v.status !== 2) busyS += v.staff; });
-            document.getElementById('staff-count').innerText = (totalS - busyS) + "/" + totalS;
-
+            document.getElementById('money-count').innerText = Math.floor(money).toLocaleString();
+            document.getElementById('lvl-display').innerText = lvl;
+            document.getElementById('m-progress').innerText = `${doneMissions}/${getLvlTarget()}`;
+            document.getElementById('mission-counter').innerText = "EINSÄTZE: " + activeMissions.length;
             const area = document.getElementById('mission-area'); area.innerHTML = "";
             activeMissions.forEach(m => {
-                const d = document.createElement('div');
-                d.className = `m-card ${selectedMissionId===m.id?'selected':''}`;
-                d.onclick = () => { selectedMissionId=m.id; map.setView([m.lat, m.lng], 15); updateUI(); };
-                d.innerHTML = `<b>${m.t}</b><br><small>Belohnung: ${Math.floor(m.reward * config.multi)} €</small>`;
-                area.appendChild(d);
+                const card = document.createElement('div');
+                card.className = `m-card ${selectedMissionId === m.id ? 'selected' : ''} ${m.processing ? 'processing' : ''}`;
+                card.onclick = () => { if(!m.processing) { selectedMissionId = m.id; updateUI(); map.panTo([m.lat, m.lng]); } };
+                card.innerHTML = `<span class="m-addr">📍 ${m.addr}</span><span class="m-title">${m.t}</span><div style="margin-top:10px;">${m.req.map(r => `<span class="req-tag">${r}</span>`).join("")}</div>`;
+                area.appendChild(card);
             });
             renderGarageColors();
         }
 
         function renderGarage() {
             const g = document.getElementById('garage'); g.innerHTML = "";
-            Object.keys(vehicles).forEach(v => {
-                g.innerHTML += `<button class="v-btn" id="btn-${v}" onclick="toggleV('${v}')">${v}<br><small>${vehicles[v].type}</small></button>`;
+            Object.keys(vehicles).sort().forEach(v => {
+                g.innerHTML += `<button class="v-btn" id="btn-${v}" onclick="toggleV('${v}')">${v}<br>${vehicles[v].type}</button>`;
             });
         }
 
@@ -221,60 +259,54 @@
                 const b = document.getElementById('btn-'+v); if(!b) return;
                 let s = vehicles[v].status;
                 b.style.background = s===3?'var(--s3)':s===4?'var(--s4)':s===1?'var(--s1)':'#232731';
+                b.style.color = s===3?'#000':'#fff';
+                b.style.borderColor = selectedVehicles.includes(v) ? "#fff" : "#383e4d";
             });
         }
 
-        function toggleV(v) {
-            if(vehicles[v].status !== 2) return;
-            let i = selectedVehicles.indexOf(v);
-            if(i > -1) { selectedVehicles.splice(i,1); document.getElementById('btn-'+v).classList.remove('selected'); }
-            else { selectedVehicles.push(v); document.getElementById('btn-'+v).classList.add('selected'); }
-        }
+        function toggleV(v) { if(vehicles[v].status === 2) { let i = selectedVehicles.indexOf(v); if(i > -1) selectedVehicles.splice(i, 1); else selectedVehicles.push(v); updateUI(); } }
 
         function execute() {
-            if(!selectedMissionId || selectedVehicles.length === 0) return;
+            if(!selectedMissionId || !selectedVehicles.length) return;
             const m = activeMissions.find(x => x.id === selectedMissionId);
-            let sTypes = selectedVehicles.map(v => vehicles[v].type);
-            let reqs = [...m.req]; sTypes.forEach(t => { let i = reqs.indexOf(t); if(i > -1) reqs.splice(i,1); });
-            if(reqs.length > 0) { alert("Fahrzeuge fehlen!"); return; }
-
-            const vList = [...selectedVehicles]; selectedVehicles = []; selectedMissionId = null;
-            document.querySelectorAll('.v-btn').forEach(b => b.classList.remove('selected'));
-            vList.forEach(v => vehicles[v].status = 3); updateUI();
-
+            if(!m || m.processing) return;
+            m.processing = true;
+            const sent = [...selectedVehicles]; selectedVehicles = []; selectedMissionId = null;
+            sent.forEach(v => vehicles[v].status = 3); updateUI();
             setTimeout(() => {
-                vList.forEach(v => vehicles[v].status = 4); updateUI();
+                sent.forEach(v => vehicles[v].status = 4); updateUI();
                 setTimeout(() => {
-                    if(m.marker) map.removeLayer(m.marker); 
+                    if(m.marker) map.removeLayer(m.marker);
                     activeMissions = activeMissions.filter(x => x.id !== m.id);
-                    money += (m.reward * config.multi);
-                    vList.forEach(v => vehicles[v].status = 1); updateUI(); saveGame();
-                    setTimeout(() => {
-                        vList.forEach(v => vehicles[v].status = 2); updateUI(); saveGame();
-                    }, 8000 * config.speed);
-                }, m.duration * config.speed);
-            }, 5000 * config.speed);
+                    money += (m.reward * diffMult); 
+                    doneMissions++;
+                    if(doneMissions >= getLvlTarget()) { doneMissions = 0; lvl++; alert("LEVEL UP!"); }
+                    sent.forEach(v => vehicles[v].status = 1); updateUI();
+                    setTimeout(() => { sent.forEach(v => vehicles[v].status = 2); updateUI(); saveGame(); }, 5000);
+                }, m.duration);
+            }, 3000);
         }
 
         function openShop() {
             const list = document.getElementById('shop-list'); list.innerHTML = "";
-            const items = [{n:"HLF 20", t:"LF", p:5000, s:9}, {n:"DLK 23", t:"DLK", p:8000, s:3}, {n:"RW 2", t:"GW", p:6000, s:3}, {n:"ELW 1", t:"ELW", p:3000, s:2}];
-            items.forEach(i => {
-                list.innerHTML += `<div style="display:flex; justify-content:space-between; margin-bottom:12px; align-items:center; border-bottom:1px solid #333; padding-bottom:8px">
-                    <span><b>${i.n}</b><br><small>${i.p}€ | 👥 ${i.s}</small></span>
-                    <button class="btn-diff easy" style="padding:5px 15px; width:auto" onclick="buyVehicle('${i.t}', ${i.p}, ${i.s})">KAUFEN</button>
-                </div>`;
+            const shopItems = [
+                {n:"Zweites LF", t:"LF", p:4500, l:2}, {n:"Drehleiter (1)", t:"DLK", p:8500, l:3},
+                {n:"Rüstwagen (GW)", t:"GW", p:6000, l:4}, {n:"Zweiter ELW", t:"ELW", p:3500, l:5}, {n:"Drehleiter (2)", t:"DLK", p:11000, l:6}
+            ];
+            shopItems.forEach(i => {
+                const locked = lvl < i.l;
+                list.innerHTML += `<div style="display:flex; justify-content:space-between; align-items:center; background:#1c212c; padding:15px; border-radius:12px; margin-bottom:10px; border:1px solid ${locked?'#333':'#444'}"><div><b>${i.n}</b><br><small style="color:${money>=i.p?'var(--s2)':'var(--s4)'}">${i.p}€</small> ${locked?'<br><small style="color:var(--s3)">LVL '+i.l+'</small>':''}</div><button class="v-btn" style="width:80px; background:${locked?'#444':'var(--s2)'}" ${locked||money<i.p?'disabled':''} onclick="buy('${i.t}', ${i.p})">KAUF</button></div>`;
             });
-            document.getElementById('shop-mod').style.display = 'flex';
+            document.getElementById('shop-mod').style.display='flex';
         }
 
-        function buyVehicle(t, p, s) {
-            if(money >= p) {
-                money -= p; vehicles[t+" "+(Object.keys(vehicles).length+1)] = {staff:s, type:t, status:2};
-                renderGarage(); updateUI(); saveGame();
-            } else alert("Geld fehlt!");
+        function buy(t, p) {
+            money -= p; let id = (t==="LF"?"40/":t==="DLK"?"30/":t==="ELW"?"10/":"50/") + (Object.keys(vehicles).length + 1);
+            vehicles[id] = {type:t, status:2}; renderGarage(); updateUI(); saveGame();
+            document.getElementById('shop-mod').style.display='none';
         }
 
+        function toggleSound() { soundEnabled = !soundEnabled; const b = document.getElementById('sound-btn'); b.innerText = "SOUND: " + (soundEnabled ? "AN" : "AUS"); b.className = "btn " + (soundEnabled ? "btn-green" : "btn-red"); }
         function resetGame() { if(confirm("Spielstand wirklich löschen?")) { localStorage.clear(); location.reload(); } }
     </script>
 </body>
