@@ -3,44 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FF Königsbrunn - ProCenter</title>
+    <title>FF KÖB Mobil</title>
     <style>
         :root { 
             --s1: #42a5f5; --s2: #66bb6a; --s3: #fdd835; --s4: #ef5350;
             --bg: #0f111a; --sidebar: #1a1c23; --accent: #d32f2f; --text: #f0f0f0;
         }
-        body { background: var(--bg); color: var(--text); font-family: sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { 
+            background: var(--bg); color: var(--text); font-family: sans-serif; 
+            margin: 0; display: flex; flex-direction: column; height: 100vh; width: 100vw; overflow: hidden; 
+        }
         
-        header { background: var(--sidebar); padding: 10px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--accent); }
-        .stats-bar { background: #12141a; padding: 5px 15px; display: flex; gap: 10px; font-size: 0.75em; align-items: center; border-bottom: 1px solid #333; }
-        .xp-bg { flex-grow: 1; height: 6px; background: #333; border-radius: 3px; overflow: hidden; }
+        header { background: var(--sidebar); padding: 8px 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--accent); flex-shrink: 0; }
+        .stats-bar { background: #12141a; padding: 5px 10px; display: flex; gap: 10px; font-size: 0.7em; align-items: center; flex-shrink: 0; }
+        .xp-bg { flex-grow: 1; height: 5px; background: #333; border-radius: 3px; overflow: hidden; }
         #xp-fill { height: 100%; background: var(--s3); width: 0%; transition: 0.5s; }
 
-        /* Personal Anzeige */
-        .staff-info { background: #1a1c23; color: var(--s2); padding: 5px 15px; font-weight: bold; font-size: 0.8em; display: flex; justify-content: space-between; border-bottom: 1px solid #444; }
+        .staff-info { background: #1a1c23; color: var(--s2); padding: 4px 10px; font-weight: bold; font-size: 0.75em; display: flex; justify-content: space-between; flex-shrink: 0; border-bottom: 1px solid #333; }
 
-        #map { height: 140px; background: #1b211b; position: relative; border-bottom: 1px solid #333; }
-        .marker { position: absolute; width: 22px; height: 22px; background: var(--accent); border-radius: 50%; border: 2px solid white; transform: translate(-50%, -50%); display: none; align-items: center; justify-content: center; font-weight: bold; box-shadow: 0 0 10px var(--accent); z-index: 10; font-size: 12px; }
+        #map { height: 25vh; background: #1b211b; position: relative; flex-shrink: 0; border-bottom: 1px solid #333; }
+        .marker { position: absolute; width: 20px; height: 20px; background: var(--accent); border-radius: 50%; border: 2px solid white; transform: translate(-50%, -50%); display: none; align-items: center; justify-content: center; font-weight: bold; box-shadow: 0 0 10px var(--accent); z-index: 10; font-size: 10px; }
 
-        #mission-area { flex-grow: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
-        .m-card { background: var(--sidebar); border-radius: 8px; padding: 12px; border: 1px solid #333; }
-        .m-card.selected { border-color: var(--s1); background: #252833; }
-        .weather-alert { background: #ff9800; color: black; padding: 5px; text-align: center; font-weight: bold; font-size: 0.8em; display: none; }
+        #mission-area { flex-grow: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; background: #14161e; }
+        .m-card { background: var(--sidebar); border-radius: 8px; padding: 10px; border: 1px solid #333; }
+        .m-card.selected { border-color: var(--s1); background: #252833; box-shadow: 0 0 10px rgba(66, 165, 245, 0.3); }
 
-        .garage { background: var(--sidebar); padding: 10px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
-        .v-btn { background: #2c2f3a; border: none; color: white; padding: 10px 0; border-radius: 6px; font-size: 0.7em; font-weight: bold; position: relative; }
+        .garage { background: var(--sidebar); padding: 8px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; flex-shrink: 0; }
+        .v-btn { background: #2c2f3a; border: none; color: white; padding: 12px 0; border-radius: 6px; font-size: 0.75em; font-weight: bold; position: relative; }
         .v-btn.selected { background: var(--s1); }
-        .v-btn span { position: absolute; top: -5px; right: -5px; background: #555; border-radius: 50%; width: 15px; height: 15px; font-size: 10px; display: flex; align-items: center; justify-content: center; border: 1px solid white; }
+        .v-btn span { position: absolute; top: -3px; right: -3px; background: #444; border-radius: 50%; width: 14px; height: 14px; font-size: 8px; display: flex; align-items: center; justify-content: center; border: 1px solid #fff; }
 
-        .actions { padding: 10px; background: var(--sidebar); border-top: 1px solid #333; }
-        #send-btn { width: 100%; padding: 15px; border-radius: 8px; border: none; background: var(--accent); color: white; font-weight: bold; cursor: pointer; }
+        .actions { padding: 8px; background: var(--sidebar); border-top: 1px solid #333; flex-shrink: 0; }
+        #send-btn { width: 100%; padding: 14px; border-radius: 8px; border: none; background: var(--accent); color: white; font-weight: bold; font-size: 0.9em; }
+        
+        .weather-alert { background: #ff9800; color: black; padding: 3px; text-align: center; font-weight: bold; font-size: 0.7em; display: none; }
     </style>
 </head>
 <body>
 
     <header>
-        <span style="font-weight:900;">ILS KÖNIGSBRUNN</span>
-        <div id="clock">00:00:00</div>
+        <span style="font-weight:900; font-size: 0.9em;">FF KÖNIGSBRUNN</span>
+        <div id="clock" style="font-size: 0.8em;">00:00:00</div>
     </header>
 
     <div class="stats-bar">
@@ -49,11 +53,11 @@
     </div>
 
     <div class="staff-info">
-        <span>PERSONAL VERFÜGBAR:</span>
-        <span id="staff-count">45</span>
+        <span>STATUS: BEREIT</span>
+        <span>👩‍🚒 <span id="staff-count">45</span></span>
     </div>
 
-    <div id="weather-banner" class="weather-alert">⚠️ UNWETTER-WARNUNG: ERHÖHTES EINSATZAUFKOMMEN</div>
+    <div id="weather-banner" class="weather-alert">⚠️ STURM-MODUS</div>
 
     <div id="map">
         <div id="dot0" class="marker">1</div>
@@ -66,7 +70,7 @@
     <div class="garage" id="garage"></div>
 
     <div class="actions">
-        <button id="send-btn" onclick="execute()">EINSATZ BESTÄTIGEN (S3)</button>
+        <button id="send-btn" onclick="execute()">EINSATZ SENDEN</button>
     </div>
 
     <script>
@@ -83,10 +87,8 @@
         };
 
         let activeMissions = [], selectedVehicles = [], selectedMissionId = null;
-        let xp = 0, lvl = 1, staffMax = 45, staffCurrent = 45;
-        let weatherMode = false;
+        let xp = 0, lvl = 1, staffMax = 45, staffCurrent = 45, weatherMode = false;
 
-        // Init UI
         Object.keys(vehicles).forEach(v => {
             document.getElementById('garage').innerHTML += `
                 <button class="v-btn" id="btn-${v}" onclick="toggleV('${v}')">
@@ -107,29 +109,29 @@
         }
 
         const missionPool = [
-            { t: "Keller unter Wasser", r: ["65/1"], staff: 3, xp: 40, msg: "Sturm-Schaden: Keller unter Wasser." },
-            { t: "Baum auf Straße", r: ["40/1"], staff: 6, xp: 60, msg: "Sturm-Schaden: Baum blockiert Fahrbahn." },
-            { t: "Dachstuhlbrand", r: ["12/1", "40/1", "30/1", "40/2"], staff: 24, xp: 400, msg: "Großbrand: Dachstuhl steht in Flammen!" },
-            { t: "Person klemmt", r: ["10/1", "40/1", "62/1"], staff: 13, xp: 200, msg: "VU: Person nach Unfall eingeklemmt." }
+            { t: "Keller unter Wasser", r: ["65/1"], staff: 3, xp: 40, msg: "Wasserschaden." },
+            { t: "Baum auf Straße", r: ["40/1"], staff: 6, xp: 60, msg: "Baum auf Fahrbahn." },
+            { t: "Zimmerbrand", r: ["12/1", "40/1", "30/1"], staff: 15, xp: 250, msg: "Brandeinsatz!" },
+            { t: "VU Person klemmt", r: ["10/1", "40/1", "62/1"], staff: 13, xp: 200, msg: "Verkehrsunfall." }
         ];
 
         function triggerMission() {
             if(activeMissions.length >= 3) return;
             const pool = weatherMode ? missionPool.slice(0,2) : missionPool;
-            const m = {...pool[Math.floor(Math.random()*pool.length)], id: Math.random(), x: 20+Math.random()*60, y: 20+Math.random()*50};
+            const m = {...pool[Math.floor(Math.random()*pool.length)], id: Math.random(), x: 15+Math.random()*70, y: 15+Math.random()*70};
             activeMissions.push(m);
             updateUI();
-            new Audio('https://www.soundjay.com/buttons/beep-01a.mp3').play().catch(()=>{});
         }
 
         function updateUI() {
             const area = document.getElementById('mission-area');
-            area.innerHTML = activeMissions.length === 0 ? '<div style="text-align:center; padding:20px; color:#555;">Funkstille...</div>' : '';
+            area.innerHTML = activeMissions.length === 0 ? '<div style="text-align:center; padding:20px; color:#555; font-size:0.8em;">Warten auf Notruf...</div>' : '';
             activeMissions.forEach((m, i) => {
                 const div = document.createElement('div');
                 div.className = `m-card ${selectedMissionId === m.id ? 'selected' : ''}`;
                 div.onclick = () => { selectedMissionId = m.id; updateUI(); };
-                div.innerHTML = `<b>${m.t}</b><br><small style="color:var(--s3)">Bedarf: ${m.r.join(", ")} | Min. Personal: ${m.staff}</small>`;
+                div.innerHTML = `<div style="display:flex; justify-content:space-between; font-size:0.85em;"><b>${m.t}</b> <span style="color:var(--s3)">${m.staff} 🚒</span></div>
+                                 <div style="font-size:0.65em; color:#aaa; margin-top:4px;">Bedarf: ${m.r.join(", ")}</div>`;
                 area.appendChild(div);
                 const dot = document.getElementById('dot'+i);
                 dot.style.display = "flex"; dot.style.left = m.x+"%"; dot.style.top = m.y+"%";
@@ -137,11 +139,10 @@
             [0,1,2].forEach(i => { if(i >= activeMissions.length) document.getElementById('dot'+i).style.display="none"; });
             
             document.getElementById('staff-count').innerText = staffCurrent;
-            document.getElementById('staff-count').style.color = staffCurrent < 10 ? 'var(--s4)' : 'var(--s2)';
             Object.keys(vehicles).forEach(v => {
                 const btn = document.getElementById('btn-'+v);
                 btn.disabled = (vehicles[v].status !== 2);
-                btn.style.opacity = (vehicles[v].status === 2) ? "1" : "0.3";
+                btn.style.opacity = (vehicles[v].status === 2) ? "1" : "0.2";
             });
         }
 
@@ -149,26 +150,17 @@
             if(!selectedMissionId || selectedVehicles.length === 0) return;
             const mIdx = activeMissions.findIndex(m => m.id === selectedMissionId);
             const m = activeMissions[mIdx];
-            
-            // Personal berechnen
             let totalStaff = 0;
             selectedVehicles.forEach(v => totalStaff += vehicles[v].staff);
 
-            if(totalStaff < m.staff) {
-                alert("ZU WENIG PERSONAL! Du brauchst mindestens " + m.staff + " Leute.");
-                return;
-            }
-            if(staffCurrent < totalStaff) {
-                alert("NICHT GENUG PERSONAL IN DER WACHE!");
-                return;
+            if(totalStaff < m.staff || staffCurrent < totalStaff) {
+                alert("Personalmangel!"); return;
             }
 
-            // Start
             const ve = [...selectedVehicles];
-            const neededStaff = totalStaff;
-            staffCurrent -= neededStaff;
-            selectedVehicles = [];
-            selectedMissionId = null;
+            const usedStaff = totalStaff;
+            staffCurrent -= usedStaff;
+            selectedVehicles = []; selectedMissionId = null;
             document.querySelectorAll('.v-btn').forEach(b => b.classList.remove('selected'));
 
             ve.forEach(v => vehicles[v].status = 3);
@@ -182,16 +174,11 @@
                     xp += m.xp; if(xp >= lvl*500) { lvl++; xp=0; }
                     document.getElementById('lvl').innerText = lvl;
                     document.getElementById('xp-fill').style.width = (xp/(lvl*500)*100)+"%";
-                    
                     ve.forEach(v => vehicles[v].status = 1);
                     updateUI();
-                    
-                    // Rückkehr des Personals (B)
                     setTimeout(() => {
                         ve.forEach(v => vehicles[v].status = 2);
-                        staffCurrent += vehicles[ve[0]].staff; // Vereinfacht: Personal kehrt mit Auto zurück
-                        // Da wir oben totalStaff abgezogen haben, geben wir es hier zurück
-                        staffCurrent += (neededStaff - vehicles[ve[0]].staff); 
+                        staffCurrent += usedStaff;
                         if(staffCurrent > staffMax) staffCurrent = staffMax;
                         updateUI();
                     }, 8000);
@@ -199,14 +186,13 @@
             }, 3000);
         }
 
-        // Wetter-System (C)
         setInterval(() => {
-            weatherMode = Math.random() > 0.8;
+            weatherMode = Math.random() > 0.85;
             document.getElementById('weather-banner').style.display = weatherMode ? 'block' : 'none';
         }, 60000);
 
-        setInterval(triggerMission, 20000);
-        setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString(); }, 1000);
+        setInterval(triggerMission, 15000);
+        setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString('de-DE'); }, 1000);
         triggerMission();
     </script>
 </body>
