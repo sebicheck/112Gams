@@ -3,113 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LST SIM - V6.4 (Menü & Fixes)</title>
+    <title>LST SIM - V12.3 (Final Polish)</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         :root { 
-            --s1: #42a5f5; --s2: #66bb6a; --s3: #fdd835; --s4: #ef5350; --s5: #ff9800;
-            --bg: #0b0e14; --sidebar: #161a23; --accent: #d32f2f; --text: #ffffff;
+            --s1: #42a5f5; --s2: #66bb6a; --s3: #fdd835; --s4: #ef5350; --s7: #ff9800; --s8: #ab47bc;
+            --bg: #0b0e14; --sidebar: #161a23; --card: #1c212c; --accent: #d32f2f; --text: #ffffff;
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; -webkit-tap-highlight-color: transparent; }
-        
-        body { 
-            height: 100vh; height: 100dvh; width: 100vw; overflow: hidden; 
-            background: var(--bg); color: var(--text); 
-            display: flex; flex-direction: column; 
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
+        ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: #383e4d; border-radius: 4px; }
 
-        #start-overlay { 
-            position: fixed; inset: 0; background: #0b0e14; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 999999; padding: 20px;
-        }
+        body { height: 100vh; height: 100dvh; width: 100vw; overflow: hidden; background: var(--bg); color: var(--text); display: flex; flex-direction: column; }
 
-        .start-card {
-            background: #1e2430; border: 2px solid #383e4d;
-            padding: 25px; border-radius: 28px; width: 100%; max-width: 400px; text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-            max-height: 95vh; overflow-y: auto;
-        }
+        #start-overlay { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 999999; padding: 15px; }
+        .start-card { background: var(--sidebar); border: 1px solid #383e4d; padding: 25px; border-radius: 20px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.8); max-height: 95vh; overflow-y: auto; }
+        .info-box { background: rgba(0,0,0,0.2); border-radius: 10px; padding: 12px; font-size: 0.8em; text-align: left; margin-bottom: 20px; color: #bbb; line-height: 1.4; border-left: 3px solid var(--s3); }
+        .info-box span { font-weight: bold; }
+        
+        .btn { width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; font-size: 0.95em; color: white; transition: 0.1s; touch-action: manipulation; }
+        .btn-blue { background: var(--s1); border-bottom: 3px solid #1976d2; } .btn-green { background: var(--s2); border-bottom: 3px solid #388e3c; } .btn-yellow { background: var(--s3); color: #000; border-bottom: 3px solid #fbc02d; } .btn-red { background: var(--s4); border-bottom: 3px solid #c62828; } .btn-gray { background: #444; color: #aaa; border-bottom: none; }
+        .btn:active { transform: translateY(2px); border-bottom-width: 1px; }
+        
+        .admin-input { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #444; background: #222; color: white; font-size: 1em; text-align: center; }
 
-        /* NEU: Info-Box im Hauptmenü */
-        .info-box {
-            background: rgba(0,0,0,0.3); border: 1px solid #383e4d; 
-            border-radius: 12px; padding: 15px; font-size: 0.85em; 
-            text-align: left; margin-bottom: 20px; color: #ccc; line-height: 1.5;
-        }
-        .info-box b { color: var(--s1); }
-        .info-box .med { color: var(--s5); }
-        .info-box .fw { color: var(--s4); }
+        header { background: var(--sidebar); padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; z-index: 1000; flex-shrink: 0; }
+        .header-icons button { background: none; border: none; color: white; font-size: 22px; cursor: pointer; margin-left: 12px; transition: 0.2s; }
         
-        .btn { 
-            position: relative; z-index: 10;
-            width: 100%; padding: 18px; margin-bottom: 12px; 
-            border-radius: 14px; border: none; font-weight: bold; cursor: pointer; 
-            font-size: 1em; color: white; transition: 0.1s; touch-action: manipulation;
-        }
-        .btn-blue { background: var(--s1); border-bottom: 4px solid #1976d2; }
-        .btn-green { background: var(--s2); border-bottom: 4px solid #388e3c; }
-        .btn-yellow { background: var(--s3); color: #000; border-bottom: 4px solid #fbc02d; }
-        .btn-red { background: var(--s4); border-bottom: 4px solid #c62828; }
-        .btn-gray { background: #444; color: #aaa; }
-        .btn:active { transform: translateY(3px); border-bottom-width: 1px; }
+        .top-status { background: var(--sidebar); padding: 5px 15px 10px 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 5px; font-size: 0.8em; font-weight: bold; flex-shrink: 0; border-bottom: 2px solid var(--accent); color: #ddd; }
+        .stat-item { background: #12141a; padding: 4px 8px; border-radius: 6px; border: 1px solid #333; display: flex; justify-content: space-between; }
+        .stat-item span { color: var(--s2); }
+        
+        #map { flex: 0 0 25vh; width: 100%; filter: grayscale(1) invert(1) brightness(0.85); z-index: 10; background: #222; border-bottom: 1px solid #333; transition: flex 0.4s ease, filter 2s; }
+        #map.expanded { flex: 0 0 50vh; }
+        #map.night-mode { filter: grayscale(1) invert(1) brightness(0.35) sepia(0.5) hue-rotate(180deg); }
+        
+        #event-banner { display: none; background: var(--s3); color: black; font-weight: bold; text-align: center; padding: 4px; font-size: 0.75em; text-transform: uppercase; animation: flash 1s infinite alternate; }
+        @keyframes flash { from { opacity: 1; } to { opacity: 0.7; } }
 
-        header { background: var(--sidebar); padding: 12px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--accent); z-index: 1000; flex-shrink: 0; }
-        .top-status { background: #12141a; padding: 8px 15px; display: flex; justify-content: space-between; font-size: 0.8em; font-weight: bold; flex-shrink: 0; }
+        #mission-area { flex: 1 1 auto; overflow-y: auto; padding: 10px; background: var(--bg); }
+        .m-card { background: var(--card); border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; border: 1px solid #2a2e38; border-left: 4px solid var(--accent); cursor: pointer; transition: 0.1s; }
+        .m-card.selected { border-color: var(--s1); background: #222a3a; transform: translateX(3px); }
+        .m-card.processing { opacity: 0.4; pointer-events: none; }
+        .m-addr { font-size: 0.7em; color: var(--s3); font-weight: bold; display: block; margin-bottom: 2px; }
+        .m-title { font-size: 0.95em; font-weight: bold; }
+        .m-reward { background: #12141a; color: var(--s2); font-size: 0.75em; font-weight: bold; padding: 3px 6px; border-radius: 6px; border: 1px solid #333; }
         
-        #map { flex: 0 0 25vh; width: 100%; filter: grayscale(1) invert(1) brightness(0.75); z-index: 10; background: #222; }
-        
-        #mission-area { flex: 1 1 auto; overflow-y: auto; padding: 12px; -webkit-overflow-scrolling: touch; }
-        
-        .m-card { 
-            background: var(--sidebar); border-radius: 15px; padding: 15px; margin-bottom: 12px; 
-            border: 1px solid #2a2e38; border-left: 6px solid var(--accent); cursor: pointer;
-        }
-        .m-card.selected { border-color: var(--s1); background: #1e2430; }
-        .m-card.processing { opacity: 0.5; pointer-events: none; }
-        
-        .m-addr { font-size: 0.75em; color: var(--s3); font-weight: bold; display: block; margin-bottom: 3px; }
-        .m-title { font-size: 1.05em; font-weight: bold; display: block; }
-        .m-reward { background: #12141a; color: var(--s2); font-size: 0.8em; font-weight: bold; padding: 4px 8px; border-radius: 8px; border: 1px solid #333; }
-        
-        .req-tag { background: #333; color: var(--s1); padding: 2px 6px; border-radius: 4px; font-size: 0.7em; font-weight: bold; margin-right: 4px; border: 1px solid #444; display: inline-block; margin-bottom: 4px; }
-        .req-tag.med { color: var(--s5); border-color: #553300; background: #2a1a00;}
+        .req-tag { background: #333; color: var(--s1); padding: 2px 5px; border-radius: 4px; font-size: 0.65em; font-weight: bold; margin-right: 4px; margin-top: 5px; border: 1px solid #444; display: inline-block; }
+        .req-tag.med { color: var(--s7); border-color: #553300; background: #2a1a00; }
+        .req-tag.pol { color: #fff; border-color: #003366; background: #004080; }
+        .req-tag.rth { color: #000; border-color: #ff9800; background: #ffcc80; }
 
-        .bottom-nav { 
-            background: var(--sidebar); 
-            padding: 12px 12px calc(12px + env(safe-area-inset-bottom)); 
-            border-top: 1px solid #333; z-index: 2000; flex-shrink: 0; 
-        }
-        .garage { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 12px; }
-        .v-btn { background: #232731; border: 1px solid #383e4d; color: white; padding: 10px 0; border-radius: 8px; font-size: 0.6em; font-weight: bold; }
-        
-        #send-btn { width: 100%; padding: 18px; border-radius: 14px; border: none; background: var(--accent); color: white; font-weight: 900; font-size: 1.1em; cursor: pointer; }
+        .btn-aao { background: var(--s2); color: #000; font-weight: bold; font-size: 0.7em; padding: 4px 10px; border: none; border-radius: 6px; cursor: pointer; transition: 0.1s; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
+        .btn-aao:active { transform: scale(0.95); }
 
-        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 80000; padding: 20px; }
-        .shop-item { background: #232731; padding: 12px; border-radius: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #383e4d; }
+        .bottom-nav { background: var(--sidebar); padding: 10px 12px; border-top: 1px solid #333; z-index: 2000; flex-shrink: 0; box-shadow: 0 -5px 15px rgba(0,0,0,0.5); }
+        .garage-tabs { display: flex; gap: 5px; margin-bottom: 8px; }
+        .g-tab { flex: 1; background: #232731; border: 1px solid #383e4d; color: #aaa; padding: 6px 0; border-radius: 6px; font-size: 0.7em; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .g-tab.active { background: var(--s1); color: white; border-color: #1976d2; }
+
+        .garage { display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 6px; margin-bottom: 10px; max-height: 22vh; overflow-y: auto; padding-right: 2px; }
+        .v-btn { background: #232731; border: 1px solid #383e4d; color: white; padding: 8px 0; border-radius: 8px; font-size: 0.65em; font-weight: bold; cursor: pointer; transition: 0.1s; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .v-btn span { font-size: 1.1em; margin-bottom: 2px; }
+        #send-btn { width: 100%; padding: 14px; border-radius: 10px; border: none; background: var(--accent); color: white; font-weight: 900; font-size: 1em; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; }
+
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(3px); display: none; align-items: center; justify-content: center; z-index: 80000; padding: 15px; }
+        .modal .card { background: var(--sidebar); padding: 20px; border-radius: 16px; width: 100%; max-width: 400px; border: 1px solid #383e4d; }
+        .shop-item { background: var(--card); padding: 10px; border-radius: 10px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #2a2e38; }
+        
+        .guide-content { text-align: left; font-size: 0.85em; line-height: 1.6; max-height: 60vh; overflow-y: auto; color: #ddd; padding-right: 5px; }
+        .guide-content b { display: block; margin-top: 10px; margin-bottom: 3px; font-size: 1.1em; }
     </style>
 </head>
 <body>
-
-    <script>
-        window.onerror = function(msg, url, line) { console.error("Fehler: " + msg + "\nZeile: " + line); return false; };
-    </script>
+    <script>window.onerror = function(m, u, l) { console.error(m + " (Zeile: " + l + ")"); return false; };</script>
 
     <div id="start-overlay">
         <div class="start-card">
             <h1 style="font-size: 2.2em; margin-bottom: 5px;">LST SIM</h1>
-            <p style="color:var(--s1); font-weight: bold; margin-bottom: 15px;">V 6.4 - Menü & Fixes</p>
+            <p style="color:var(--s1); font-weight: bold; margin-bottom: 15px; font-size: 0.9em;">V 12.3 - Final Polish</p>
             
             <div class="info-box">
-                <b>🚨 Fahrzeug-Freischaltungen:</b><br>
-                <span style="color:#aaa;">Level 1:</span> <span class="fw">LF & KEF</span> (Brände, Tierrettung)<br>
-                <span style="color:#aaa;">Level 3:</span> <span class="fw">ELW, DLK</span> & <span class="med">RTW</span> (Med. Notfälle)<br>
-                <span style="color:#aaa;">Level 4:</span> <span class="fw">RW</span> & <span class="med">NEF</span> (Schwere VU, Herzinfarkt)<br>
-                <span style="color:#aaa;">Level 5-6:</span> Flottenausbau (3. LF, 2. RTW...)
+                <span style="color:var(--s3)">🌟 Willkommen zurück!</span><br>
+                Die Leitstelle Königsbrunn wartet auf deine Befehle. Neu im Spiel? Wirf einen Blick in die Kurzanleitung!
             </div>
 
+            <button class="btn btn-gray" ontouchend="showGuide(); event.preventDefault();" onclick="showGuide()">📖 KURZANLEITUNG</button>
+            <div style="height: 10px;"></div>
+
             <button id="btn-continue" class="btn btn-blue" style="display:none;" ontouchend="loadGame(); event.preventDefault();" onclick="loadGame()">WEITERSPIELEN</button>
-            <div id="btn-divider" style="height: 1px; background: rgba(255,255,255,0.1); margin: 20px 0; display:none;"></div>
-            
+            <div id="btn-divider" style="height: 1px; background: rgba(255,255,255,0.1); margin: 15px 0; display:none;"></div>
             <button class="btn btn-green" ontouchend="startGame('easy'); event.preventDefault();" onclick="startGame('easy')">LEICHT (2.000 €)</button>
             <button class="btn btn-yellow" ontouchend="startGame('medium'); event.preventDefault();" onclick="startGame('medium')">MITTEL (800 €)</button>
             <button class="btn btn-red" ontouchend="startGame('hard'); event.preventDefault();" onclick="startGame('hard')">SCHWER (300 €)</button>
@@ -117,397 +99,457 @@
     </div>
 
     <header>
-        <button style="background:none; border:none; color:white; font-size:30px; cursor:pointer;" onclick="goHome()">🏠</button>
-        <b>KÖNIGSBRUNN 112</b>
-        <div style="display:flex; gap:10px">
-            <button style="background:none; border:none; color:white; font-size:30px; cursor:pointer;" onclick="openMissions()">📋</button>
-            <button style="background:none; border:none; color:white; font-size:30px; cursor:pointer;" onclick="openShop()">🛒</button>
-            <button style="background:none; border:none; color:white; font-size:30px; cursor:pointer;" onclick="document.getElementById('set-mod').style.display='flex'">⚙️</button>
+        <div><b style="font-size: 1.1em; letter-spacing: 1px;">KÖNIGSBRUNN 112</b></div>
+        <div class="header-icons">
+            <button onclick="toggleMapExpanded()">🗺️</button>
+            <button onclick="openMissions()">📋</button>
+            <button onclick="openShop()">🛒</button>
+            <button onclick="document.getElementById('set-mod').style.display='flex'">⚙️</button>
         </div>
     </header>
 
     <div class="top-status">
-        <div>💰 <span id="money-count">0</span> €</div>
-        <div id="lvl-box">⭐ LVL <span id="lvl-display">1</span> (<span id="m-progress">0/10</span>)</div>
+        <div class="stat-item">💰 <span id="money-count" style="color:var(--s2)">0</span></div>
+        <div class="stat-item">🕒 <span id="time-display" style="color:white">08:00</span></div>
+        <div class="stat-item">⭐ Lvl <span id="lvl-display" style="color:var(--s3)">1</span> <small style="color:#aaa" id="m-progress">0/10</small></div>
+        <div class="stat-item">🏅 <span id="rank-display" style="color:var(--s1)">Azubi</span></div>
     </div>
+    
+    <div id="event-banner">INFO BANNER</div>
     <div id="map"></div>
     <div id="mission-area"></div>
+    
     <div class="bottom-nav">
+        <div class="garage-tabs">
+            <button id="tab-ALL" class="g-tab active" onclick="setGarageTab('ALL')">ALLE</button>
+            <button id="tab-FW" class="g-tab" onclick="setGarageTab('FW')">🚒 FW</button>
+            <button id="tab-RD" class="g-tab" onclick="setGarageTab('RD')">🚑 RD</button>
+            <button id="tab-POL" class="g-tab" onclick="setGarageTab('POL')">🚓 POL</button>
+        </div>
         <div class="garage" id="garage"></div>
-        <button id="send-btn" onclick="executeMission()">ALARM AUSLÖSEN</button>
+        <button id="send-btn" onclick="executeMission()">Alarm Auslösen</button>
     </div>
 
     <div id="missions-mod" class="modal">
-        <div class="card" style="background: var(--sidebar); padding: 20px; border-radius: 20px; width: 100%; max-width: 400px;">
-            <h3 style="margin-bottom:15px; text-align: center;">📋 Einsatz-Akte</h3>
-            <div id="missions-list" style="max-height:50vh; overflow-y:auto; padding-right:5px;"></div><br>
-            <button class="btn btn-yellow" style="color:black;" onclick="document.getElementById('missions-mod').style.display='none'">ZURÜCK</button>
-        </div>
+        <div class="card"><h3 style="text-align: center;">📋 Einsatz-Akte</h3><div id="missions-list" style="max-height:55vh; overflow-y:auto;"></div><br><button class="btn btn-gray" onclick="document.getElementById('missions-mod').style.display='none'">Schließen</button></div>
     </div>
-
+    
     <div id="set-mod" class="modal">
-        <div class="card" style="background: var(--sidebar); padding: 25px; border-radius: 20px; width: 100%; max-width: 400px; text-align: center;">
-            <h3 style="margin-bottom:15px;">⚙️ Einstellungen</h3>
-            <label>Intervall: <b id="freq-val">30</b>s</label>
-            <input type="range" id="freq-slider" min="10" max="90" step="5" value="30" oninput="updateFreq(this.value)" style="width:100%; margin: 10px 0 25px 0;">
+        <div class="card" style="text-align: center;"><h3 style="margin-bottom:15px;">⚙️ Einstellungen</h3>
+            <p style="color:var(--s3); font-size:0.9em; margin-bottom:15px;">Gesammelte XP: <b id="xp-display">0</b></p>
+            <label style="font-size: 0.85em; color: #aaa;">Einsatz-Takt: <b id="freq-val" style="color:white;">30</b>s</label>
+            <input type="range" id="freq-slider" min="10" max="90" step="5" value="30" oninput="updateFreq(this.value)" style="width:100%; margin: 10px 0 20px 0;">
             <button id="sound-btn" class="btn btn-green" onclick="toggleSound()">SOUND: AN</button>
+            <button class="btn btn-gray" onclick="showGuide()">📖 KURZANLEITUNG</button>
+            <hr style="border: 0; border-top: 1px solid #333; margin: 15px 0;">
+            <button class="btn btn-blue" onclick="goHome(); document.getElementById('set-mod').style.display='none'">🏠 ZUM HAUPTMENÜ</button>
             <button class="btn btn-red" onclick="resetGame()">SPIELSTAND LÖSCHEN</button>
-            <button class="btn btn-yellow" style="color:black;" onclick="document.getElementById('set-mod').style.display='none'">SCHLIESSEN</button>
+            <button class="btn btn-gray" onclick="showAdminLogin()" style="margin-bottom: 10px;">🔧 ADMIN</button>
+            <button class="btn btn-gray" onclick="document.getElementById('set-mod').style.display='none'">Schließen</button>
+        </div>
+    </div>
+    
+    <div id="shop-mod" class="modal">
+        <div class="card"><h3 style="text-align: center;">🛒 Fuhrpark-Shop</h3><div id="shop-list" style="max-height:55vh; overflow-y:auto;"></div><br><button class="btn btn-gray" onclick="document.getElementById('shop-mod').style.display='none'">Schließen</button></div>
+    </div>
+
+    <div id="guide-mod" class="modal">
+        <div class="card">
+            <h3 style="text-align: center; margin-bottom: 10px;">📖 Kurzanleitung</h3>
+            <div class="guide-content">
+                <b style="color:var(--s1)">🎮 Ziel des Spiels</b>
+                Verdiene Geld durch erfolgreiche Einsätze, baue deine Flotte aus und werde Leitstellen-Direktor von Königsbrunn!
+                
+                <b style="color:var(--s4)">🚨 Wie alarmiere ich?</b>
+                Klicke bei einem neuen Einsatz auf den grünen <b>AAO</b>-Button, um automatisch passende Fahrzeuge zu senden. Oder wähle den Einsatz an, tippe deine Fahrzeuge unten in der Garage an (nutze die FW/RD/POL Filter) und drücke "ALARM AUSLÖSEN".
+                
+                <b style="color:var(--s3)">📡 Fahrzeug-Status (Farben)</b>
+                <span style="color:var(--s1)">Blau (1):</span> Frei auf Funk (Einsatzbereit)<br>
+                <span style="color:var(--s2)">Grün (2):</span> Auf der Wache (Einsatzbereit)<br>
+                <span style="color:black; background:var(--s3); padding:0 3px;">Gelb (3):</span> Auf Anfahrt zum Einsatz<br>
+                <span style="color:var(--s4)">Rot (4):</span> Am Einsatzort (Arbeitet)<br>
+                <span style="color:black; background:var(--s7); padding:0 3px;">Orange (7):</span> Auf dem Weg ins Krankenhaus<br>
+                <span style="color:var(--s8)">Lila (8):</span> Patientenübergabe am Klinikum
+                
+                <b style="color:var(--s2)">🛒 Shop & Flotte</b>
+                Kauf dir neue Fahrzeuge! Mit höherem Level schaltest du Spezialfahrzeuge (RTH, Polizei, Spezialkräfte) frei.
+            </div><br>
+            <button class="btn btn-gray" onclick="document.getElementById('guide-mod').style.display='none'">Alles klar!</button>
         </div>
     </div>
 
-    <div id="shop-mod" class="modal">
-        <div class="card" style="background: var(--sidebar); padding: 20px; border-radius: 20px; width: 100%; max-width: 400px;">
-            <h3 style="margin-bottom:15px; text-align: center;">🛒 Fahrzeugmarkt</h3>
-            <div id="shop-list" style="max-height:50vh; overflow-y:auto; padding-right:5px;"></div><br>
-            <button class="btn btn-yellow" style="color:black;" onclick="document.getElementById('shop-mod').style.display='none'">ZURÜCK</button>
+    <div id="admin-login-mod" class="modal">
+        <div class="card" style="text-align: center;">
+            <h3 style="margin-bottom:15px;">🔒 Admin Login</h3>
+            <input type="password" id="admin-pw" class="admin-input" placeholder="Passwort eingeben...">
+            <button class="btn btn-blue" onclick="checkAdmin()">LOGIN</button>
+            <button class="btn btn-gray" onclick="document.getElementById('admin-login-mod').style.display='none'">ABBRECHEN</button>
+        </div>
+    </div>
+
+    <div id="admin-panel-mod" class="modal">
+        <div class="card" style="text-align: center;">
+            <h3 style="margin-bottom:15px; color:var(--s4);">🔧 ADMIN PANEL</h3>
+            <button class="btn btn-green" onclick="adminAddMoney(100000)">+ 100.000 €</button>
+            <button class="btn btn-yellow" onclick="adminLevelUp()">+ 1 LEVEL / XP</button>
+            <button class="btn btn-blue" onclick="adminUnlockAll()">ALLE FAHRZEUGE FREISCHALTEN</button>
+            <button class="btn btn-gray" onclick="document.getElementById('admin-panel-mod').style.display='none'">SCHLIESSEN</button>
         </div>
     </div>
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        const SAVE_KEY = 'lst_sim_v6.4'; 
-        let map, money = 0, lvl = 1, doneMissions = 0, vehicles = {}, activeMissions = [], selectedVehicles = [], selectedMissionId = null;
-        let gameRunning = false, spawnTimer = null, missionFreq = 30, countdown = 5, soundEnabled = true, diffMult = 1.0, lvlStep = 10, audioCtx = null;
+        const SAVE_KEY = 'lst_sim_v12.3'; 
+        let map, money = 0, lvl = 1, doneMissions = 0, xp = 0, vehicles = {}, activeMissions = [], selectedVehicles = [], selectedMissionId = null;
+        let gameRunning = false, spawnTimer = null, clockTimer = null, missionFreq = 30, countdown = 5, soundEnabled = true, diffMult = 1.0, lvlStep = 10, audioCtx = null;
+        let mapExpanded = false; let gameHour = 8, gameMin = 0, currentEvent = "normal";
         
-        const STATION_POS = { lat: 48.2686, lng: 10.8911 };
-        
-        const cityLocations = [
-            { n: "Bürgermeister-Wohlfarth-Str.", lat: 48.2695, lng: 10.8885 }, { n: "Haunstetter Str.", lat: 48.2831, lng: 10.8995 },
-            { n: "Gartenstraße", lat: 48.2710, lng: 10.8840 }, { n: "Landsberger Str.", lat: 48.2600, lng: 10.8845 },
-            { n: "Finkenweg", lat: 48.2650, lng: 10.8950 }, { n: "Heidestraße", lat: 48.2635, lng: 10.8820 },
-            { n: "Guldenstraße", lat: 48.2740, lng: 10.8890 }, { n: "Messerschmittring", lat: 48.2885, lng: 10.8900 },
-            { n: "Königsallee", lat: 48.2760, lng: 10.8950 }, { n: "Hunnenstraße", lat: 48.2610, lng: 10.8960 }
-        ];
-        
-        // EINSÄTZE (KEF, RTW, NEF, RW, etc. komplett überprüft)
-        const missionPool = [
-            { t: "Fundhund", req: ["KEF"], reward: 50, duration: 12000, minLvl: 1 }, 
-            { t: "Verletzter Vogel", req: ["KEF"], reward: 60, duration: 15000, minLvl: 1 },
-            { t: "Keller unter Wasser", req: ["KEF"], reward: 120, duration: 25000, minLvl: 1 }, 
-            { t: "Mülltonnenbrand", req: ["LF"], reward: 250, duration: 25000, minLvl: 1 },
-            { t: "Fahrzeugbrand", req: ["LF"], reward: 500, duration: 35000, minLvl: 1 }, 
-            { t: "Katze auf Baum", req: ["DLK"], reward: 150, duration: 15000, minLvl: 3 },
-            { t: "Zimmerbrand", req: ["ELW", "LF", "DLK"], reward: 1500, duration: 60000, minLvl: 3 }, 
-            { t: "Gestürzte Person", req: ["RTW"], reward: 300, duration: 20000, minLvl: 3 },
-            { t: "Atemnot", req: ["RTW"], reward: 400, duration: 25000, minLvl: 3 }, 
-            { t: "Dachstuhlbrand", req: ["ELW", "LF", "LF", "DLK"], reward: 3000, duration: 120000, minLvl: 3 },
-            { t: "Ölspur klein", req: ["RW"], reward: 200, duration: 20000, minLvl: 4 }, 
-            { t: "Bewusstlose Person", req: ["RTW", "NEF"], reward: 800, duration: 35000, minLvl: 4 },
-            { t: "Herzinfarkt", req: ["RTW", "NEF"], reward: 900, duration: 40000, minLvl: 4 }, 
-            { t: "VU - Person klemmt", req: ["ELW", "LF", "RW", "RTW", "NEF"], reward: 2800, duration: 90000, minLvl: 4 }
-        ];
-
-        // SHOP-ITEMS
-        const shopItems = [
-            { n: "Zweites KEF", t: "KEF", p: 2000, l: 2, max: 2 }, { n: "Zweites LF", t: "LF", p: 4500, l: 2, max: 2 },
-            { n: "ELW (Einsatzleitung)", t: "ELW", p: 4000, l: 3, max: 2 }, { n: "Drehleiter (1)", t: "DLK", p: 8000, l: 3, max: 1 },
-            { n: "Erster RTW", t: "RTW", p: 5000, l: 3, max: 1 }, { n: "RW (Rüstwagen)", t: "RW", p: 3000, l: 4, max: 1 },
-            { n: "Notarzt (NEF)", t: "NEF", p: 6500, l: 4, max: 1 }, { n: "Drittes LF", t: "LF", p: 6000, l: 5, max: 3 },
-            { n: "Zweiter RTW", t: "RTW", p: 7000, l: 6, max: 2 }, { n: "Drehleiter (2)", t: "DLK", p: 11000, l: 6, max: 2 }
-        ];
-
-        // === SOUND ENGINE ===
-        function initAudio() { if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
-
-        function playSound(type) {
-            if (!soundEnabled || !audioCtx) return;
-            const now = audioCtx.currentTime;
-            
-            if (type === 'alarm') {
-                [0, 0.4, 0.8].forEach(start => {
-                    const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-                    osc.type = 'square'; osc.frequency.setValueAtTime(1200, now + start);
-                    gain.gain.setValueAtTime(0.05, now + start); gain.gain.exponentialRampToValueAtTime(0.001, now + start + 0.3);
-                    osc.connect(gain); gain.connect(audioCtx.destination); osc.start(now + start); osc.stop(now + start + 0.3);
-                });
-            } else if (type === 'out') {
-                const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-                osc.type = 'sine'; osc.frequency.setValueAtTime(1800, now); osc.frequency.exponentialRampToValueAtTime(1200, now + 0.1);
-                gain.gain.setValueAtTime(0.1, now); gain.gain.linearRampToValueAtTime(0, now + 0.1);
-                osc.connect(gain); gain.connect(audioCtx.destination); osc.start(now); osc.stop(now + 0.1);
-            } else if (type === 'home') {
-                [0, 0.15].forEach(start => {
-                    const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-                    osc.type = 'sine'; osc.frequency.setValueAtTime(800, now + start);
-                    gain.gain.setValueAtTime(0.08, now + start); gain.gain.linearRampToValueAtTime(0, now + start + 0.1);
-                    osc.connect(gain); gain.connect(audioCtx.destination); osc.start(now + start); osc.stop(now + start + 0.1);
-                });
-            }
-        }
-
-        // === SPIEL STEUERUNG ===
-        window.onload = () => { 
-            try { 
-                if(localStorage.getItem(SAVE_KEY)) { 
-                    document.getElementById('btn-continue').style.display = 'block'; 
-                    document.getElementById('btn-divider').style.display = 'block'; 
-                } 
-            } catch(e) {} 
+        let currentGarageTab = 'ALL';
+        const catMap = {
+            "LF": "FW", "DLK": "FW", "RW": "FW", "KEF": "FW", "TLF": "FW", "GW-G": "FW", "Dekon-P": "FW", "MTW": "FW", "ELW": "FW",
+            "RTW": "RD", "NEF": "RD", "RTH": "RD", "LNA": "RD", "OrgL": "RD",
+            "FuStW": "POL", "Kripo": "POL", "SEK": "POL"
         };
 
-        function startGame(mode) { 
-            document.getElementById('start-overlay').style.display='none'; 
-            initAudio(); 
-            if(mode==='easy'){money=2000;diffMult=1.3;} else if(mode==='hard'){money=300;diffMult=0.8;} else {money=800;diffMult=1.0;} 
-            lvl=1; doneMissions=0; activeMissions=[]; selectedVehicles=[]; 
-            
-            // Start: KEF und LF
-            vehicles={"65/1":{type:"KEF",status:2}, "40/1":{type:"LF",status:2}}; 
-            
-            try{localStorage.removeItem(SAVE_KEY);}catch(e){} 
-            runGame(); 
+        const LOC = { 
+            FW: { lat: 48.2686, lng: 10.8911 }, HOSP: { lat: 48.2800, lng: 10.8800 }, 
+            POL: { lat: 48.2500, lng: 10.8500 }, RTH: { lat: 48.3200, lng: 10.9000 } 
+        };
+        
+        const cityLocations = [
+            { n: "Bgm.-Wohlfarth-Str.", lat: 48.2695, lng: 10.8885 }, { n: "Haunstetter Str.", lat: 48.2831, lng: 10.8995 },
+            { n: "Gartenstraße", lat: 48.2710, lng: 10.8840 }, { n: "Landsberger Str.", lat: 48.2600, lng: 10.8845 },
+            { n: "Finkenweg", lat: 48.2650, lng: 10.8950 }, { n: "Heidestraße", lat: 48.2635, lng: 10.8820 },
+            { n: "Guldenstraße", lat: 48.2740, lng: 10.8890 }, { n: "Gewerbegebiet", lat: 48.2550, lng: 10.8850 },
+            { n: "Königsallee", lat: 48.2760, lng: 10.8950 }, { n: "B17 Auffahrt", lat: 48.2610, lng: 10.8600 }
+        ];
+
+        const ranks = [
+            { xp: 0, n: "Azubi" }, { xp: 1000, n: "Disponent" }, { xp: 5000, n: "Ober-Disp." },
+            { xp: 15000, n: "Schichtleiter" }, { xp: 40000, n: "Wachleiter" }, { xp: 100000, n: "Direktor" }
+        ];
+        
+        const missionPool = [
+            { t: "Fundhund", req: ["KEF"], reward: 50, dur: 12000, minLvl: 1 }, 
+            { t: "Mülltonnenbrand", req: ["LF"], reward: 200, dur: 20000, minLvl: 1 },
+            { t: "Keller unter Wasser", req: ["KEF"], reward: 120, dur: 25000, minLvl: 1 }, 
+            { t: "Baum auf Straße", req: ["LF"], reward: 250, dur: 20000, minLvl: 2 },
+            { t: "Schlägerei", req: ["FuStW"], reward: 180, dur: 20000, minLvl: 2 },
+            { t: "Fahrzeugbrand", req: ["LF", "FuStW"], reward: 450, dur: 35000, minLvl: 2 }, 
+            { t: "Gestürzte Person", req: ["RTW"], reward: 300, dur: 20000, minLvl: 3 },
+            { t: "Atemnot", req: ["RTW"], reward: 400, dur: 25000, minLvl: 3 }, 
+            { t: "Zimmerbrand", req: ["ELW", "LF", "DLK", "FuStW"], reward: 1500, dur: 60000, minLvl: 4 }, 
+            { t: "Einbruch", req: ["FuStW", "Kripo"], reward: 400, dur: 30000, minLvl: 4 },
+            { t: "Ölspur klein", req: ["RW", "FuStW"], reward: 300, dur: 25000, minLvl: 5 }, 
+            { t: "Bewusstlose Person", req: ["RTW", "NEF"], reward: 800, dur: 35000, minLvl: 5 },
+            { t: "Herzinfarkt", req: ["RTW", "NEF"], reward: 900, dur: 40000, minLvl: 6 }, 
+            { t: "Waldbrand klein", req: ["LF", "TLF"], reward: 1200, dur: 50000, minLvl: 6 },
+            { t: "VU - Person klemmt", req: ["ELW", "LF", "RW", "RTW", "NEF", "FuStW"], reward: 3500, dur: 90000, minLvl: 7 },
+            { t: "Schwerer Absturz", req: ["RTH", "RTW", "FuStW"], reward: 2500, dur: 60000, minLvl: 8 },
+            { t: "Gefahrgut-Austritt", req: ["ELW", "LF", "RW", "GW-G", "Dekon-P", "RTW", "FuStW"], reward: 5500, dur: 120000, minLvl: 10 },
+            { t: "Dachstuhlbrand", req: ["ELW", "LF", "LF", "DLK", "RTW", "FuStW"], reward: 4500, dur: 100000, minLvl: 12 },
+            { t: "Geiselnahme Bank", req: ["ELW", "FuStW", "FuStW", "SEK", "RTW"], reward: 6000, dur: 110000, minLvl: 14 },
+            { t: "MANV: Busunfall", req: ["ELW", "RW", "LF", "LNA", "OrgL", "RTW", "RTW", "RTW", "NEF", "RTH", "FuStW", "FuStW"], reward: 12000, dur: 180000, minLvl: 16 },
+            { t: "Großbrand Industrie", req: ["ELW", "LF", "LF", "TLF", "DLK", "MTW", "GW-G", "RTW", "FuStW"], reward: 15000, dur: 200000, minLvl: 18 },
+            { t: "Flugzeugabsturz", req: ["ELW", "LF", "LF", "TLF", "TLF", "RW", "LNA", "OrgL", "RTW", "RTW", "RTH", "SEK"], reward: 25000, dur: 240000, minLvl: 20 }
+        ];
+
+        const shopItems = [
+            { n: "1. Polizei (FuStW)", t: "FuStW", p: 2500, l: 2, max: 1 }, { n: "2. Löschfahrzeug (LF)", t: "LF", p: 4500, l: 2, max: 2 },
+            { n: "1. Rettungswagen (RTW)", t: "RTW", p: 5000, l: 3, max: 1 }, { n: "1. Einsatzleitung (ELW)", t: "ELW", p: 4000, l: 3, max: 1 },
+            { n: "1. Drehleiter (DLK)", t: "DLK", p: 8000, l: 4, max: 1 }, { n: "Kriminalpolizei", t: "Kripo", p: 3500, l: 4, max: 1 },
+            { n: "Rüstwagen (RW)", t: "RW", p: 3000, l: 5, max: 1 }, { n: "1. Notarzt (NEF)", t: "NEF", p: 6500, l: 5, max: 1 }, { n: "2. Polizei (FuStW)", t: "FuStW", p: 2500, l: 5, max: 2 },
+            { n: "1. Waldbrand (TLF)", t: "TLF", p: 5500, l: 6, max: 1 }, { n: "2. Rettungswagen (RTW)", t: "RTW", p: 5000, l: 6, max: 2 },
+            { n: "3. Löschfahrzeug (LF)", t: "LF", p: 6000, l: 7, max: 3 }, { n: "2. Notarzt (NEF)", t: "NEF", p: 6500, l: 7, max: 2 },
+            { n: "Rettungshubschrauber", t: "RTH", p: 15000, l: 8, max: 1 }, { n: "3. Polizei (FuStW)", t: "FuStW", p: 2500, l: 8, max: 3 },
+            { n: "Gefahrgut (GW-G)", t: "GW-G", p: 8000, l: 10, max: 1 }, { n: "Dekon-Personal", t: "Dekon-P", p: 4000, l: 10, max: 1 },
+            { n: "3. Rettungswagen (RTW)", t: "RTW", p: 5000, l: 12, max: 3 }, { n: "2. Drehleiter (DLK)", t: "DLK", p: 8000, l: 12, max: 2 },
+            { n: "Spezialeinsatzkommando", t: "SEK", p: 12000, l: 14, max: 1 },
+            { n: "Leitender Notarzt", t: "LNA", p: 9000, l: 15, max: 1 }, { n: "Org. Leiter RD", t: "OrgL", p: 9000, l: 15, max: 1 },
+            { n: "4. Rettungswagen (RTW)", t: "RTW", p: 5000, l: 16, max: 4 }, { n: "Mannschaft (MTW)", t: "MTW", p: 2000, l: 16, max: 1 },
+            { n: "4. Polizei (FuStW)", t: "FuStW", p: 2500, l: 18, max: 4 }, { n: "2. Waldbrand (TLF)", t: "TLF", p: 5500, l: 18, max: 2 },
+            { n: "2. Einsatzleitung (ELW)", t: "ELW", p: 4000, l: 20, max: 2 }
+        ];
+
+        function initAudio() { if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+        function playSound(type) {
+            if (!soundEnabled || !audioCtx) return; const now = audioCtx.currentTime;
+            if (type === 'alarm') { [0, 0.4, 0.8].forEach(s => { const o = audioCtx.createOscillator(), g = audioCtx.createGain(); o.type = 'square'; o.frequency.setValueAtTime(1200, now + s); g.gain.setValueAtTime(0.04, now + s); g.gain.exponentialRampToValueAtTime(0.001, now + s + 0.3); o.connect(g); g.connect(audioCtx.destination); o.start(now + s); o.stop(now + s + 0.3); }); } 
+            else if (type === 'out') { const o = audioCtx.createOscillator(), g = audioCtx.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(1800, now); o.frequency.exponentialRampToValueAtTime(1200, now + 0.1); g.gain.setValueAtTime(0.08, now); g.gain.linearRampToValueAtTime(0, now + 0.1); o.connect(g); g.connect(audioCtx.destination); o.start(now); o.stop(now + 0.1); } 
+            else if (type === 'home') { [0, 0.15].forEach(s => { const o = audioCtx.createOscillator(), g = audioCtx.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(800, now + s); g.gain.setValueAtTime(0.06, now + s); g.gain.linearRampToValueAtTime(0, now + s + 0.1); o.connect(g); g.connect(audioCtx.destination); o.start(now + s); o.stop(now + s + 0.1); }); }
         }
 
-        function loadGame() { 
-            document.getElementById('start-overlay').style.display='none'; 
-            initAudio(); 
-            try {
-                const data=localStorage.getItem(SAVE_KEY); 
-                if(data){
-                    const d=JSON.parse(data); 
-                    money=d.money||0; lvl=d.lvl||1; vehicles=d.vehicles; doneMissions=d.doneMissions||0;
-                    diffMult=d.diff||1.0; missionFreq=d.freq||30;
-                    document.getElementById('freq-slider').value = missionFreq;
-                    document.getElementById('freq-val').innerText = missionFreq;
-                }
-            } catch(e) { startGame('medium'); return; } 
-            runGame(); 
-        }
-
+        window.onload = () => { 
+            try { if(localStorage.getItem(SAVE_KEY)) { document.getElementById('btn-continue').style.display = 'block'; document.getElementById('btn-divider').style.display = 'block'; } } catch(e) {} 
+            window.addEventListener('resize', () => { if(map) map.invalidateSize(); });
+        };
+        function startGame(mode) { document.getElementById('start-overlay').style.display='none'; initAudio(); if(mode==='easy'){money=2000;diffMult=1.3;} else if(mode==='hard'){money=300;diffMult=0.8;} else {money=800;diffMult=1.0;} lvl=1; xp=0; doneMissions=0; activeMissions=[]; selectedVehicles=[]; vehicles={"65/1":{type:"KEF",status:2}, "40/1":{type:"LF",status:2}}; try{localStorage.removeItem(SAVE_KEY);}catch(e){} runGame(); }
+        function loadGame() { document.getElementById('start-overlay').style.display='none'; initAudio(); try { const data=localStorage.getItem(SAVE_KEY); if(data){ const d=JSON.parse(data); money=d.money||0; lvl=d.lvl||1; xp=d.xp||0; vehicles=d.vehicles; doneMissions=d.doneMissions||0; diffMult=d.diff||1.0; missionFreq=d.freq||30; gameHour=d.h||8; gameMin=d.m||0; document.getElementById('freq-slider').value = missionFreq; document.getElementById('freq-val').innerText = missionFreq; } } catch(e) { startGame('medium'); return; } runGame(); }
         function runGame() { gameRunning=true; initMap(); updateUI(); renderGarage(); startSpawner(); saveGame(); }
-
+        
         function initMap() { 
             try {
                 if(!map && typeof L!=='undefined'){
-                    map=L.map('map',{zoomControl:false,attributionControl:false,tap:false}).setView([48.268,10.891],14);
+                    map=L.map('map',{zoomControl:false,attributionControl:false,tap:false}).setView([48.272, 10.885], 13);
                     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-                    L.marker([STATION_POS.lat,STATION_POS.lng],{icon:L.divIcon({className:'station-icon',html:'🏙️',iconSize:[25,25]})}).addTo(map);
-                }
-                setTimeout(()=> {if(map) map.invalidateSize()}, 500);
+                    L.marker([LOC.FW.lat,LOC.FW.lng],{icon:L.divIcon({className:'station-icon',html:'🚒',iconSize:[20,20]})}).addTo(map);
+                    L.marker([LOC.HOSP.lat,LOC.HOSP.lng],{icon:L.divIcon({className:'station-icon',html:'🏥',iconSize:[20,20]})}).addTo(map);
+                    L.marker([LOC.POL.lat,LOC.POL.lng],{icon:L.divIcon({className:'station-icon',html:'🚓',iconSize:[20,20]})}).addTo(map);
+                    L.marker([LOC.RTH.lat,LOC.RTH.lng],{icon:L.divIcon({className:'station-icon',html:'🚁',iconSize:[20,20]})}).addTo(map);
+                } setTimeout(()=> {if(map) map.invalidateSize()}, 500);
             }catch(e){} 
+        }
+
+        function toggleMapExpanded() { mapExpanded = !mapExpanded; let m = document.getElementById('map'); if(mapExpanded) m.classList.add('expanded'); else m.classList.remove('expanded'); setTimeout(()=> {if(map) map.invalidateSize()}, 400); }
+        function showGuide() { document.getElementById('guide-mod').style.display='flex'; }
+                function setGarageTab(tab) {
+            currentGarageTab = tab;
+            document.querySelectorAll('.g-tab').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('tab-' + tab).classList.add('active');
+            renderGarage();
+        }
+
+        setInterval(()=>{
+            if(!gameRunning) return;
+            gameMin += 5; if(gameMin >= 60) { gameMin=0; gameHour++; if(gameHour>=24) gameHour=0; }
+            document.getElementById('time-display').innerText = `${gameHour.toString().padStart(2,'0')}:${gameMin.toString().padStart(2,'0')}`;
+            if(map) { if(gameHour >= 20 || gameHour < 6) map.getContainer().classList.add('night-mode'); else map.getContainer().classList.remove('night-mode'); }
+            
+            if(lvl >= 4 && Math.random() < 0.005 && currentEvent === "normal") {
+                let r = Math.random();
+                if(r < 0.4) triggerEvent("STURM", "⛈️ Orkantief zieht durch!", "Baum auf Straße", 5);
+                else if(r < 0.8) triggerEvent("HITZE", "🔥 Hitzewelle extrem!", "Waldbrand klein", 3);
+                else triggerEvent("SILVESTER", "🎆 Silvester-Wahnsinn!", "Mülltonnenbrand", 6);
+            }
+        }, 1000);
+
+        function triggerEvent(id, text, spawnType, count) {
+            currentEvent = id; const banner = document.getElementById('event-banner');
+            banner.style.display = 'block'; banner.style.background = (id==="STURM")?"#42a5f5":(id==="HITZE")?"#ef5350":"#ab47bc"; banner.innerText = text;
+            playSound('alarm'); setTimeout(()=>playSound('alarm'), 500);
+            for(let i=0; i<count; i++) setTimeout(() => spawnMission(spawnType), i*1000);
+            setTimeout(() => { banner.style.display = 'none'; currentEvent = "normal"; }, 15000);
         }
 
         function startSpawner() { 
             if(spawnTimer) clearInterval(spawnTimer); 
             spawnTimer=setInterval(()=>{
                 if(!gameRunning) return; 
-                let limit=(lvl>=6) ? 4 : (lvl>=4) ? 3 : 2; 
-                if(activeMissions.length < limit){
-                    countdown--;
-                    if(countdown<=0){ spawnMission(); countdown=missionFreq; }
-                }
+                let limit = 2;
+                if(lvl >= 4) limit = 3; if(lvl >= 8) limit = 4; if(lvl >= 12) limit = 5; if(lvl >= 16) limit = 6;
+                if(activeMissions.length < limit){ countdown--; if(countdown<=0){ spawnMission("rand"); countdown=missionFreq; } }
             },1000); 
         }
 
-        function spawnMission() { 
+        function spawnMission(forceType) { 
             const owned = Object.values(vehicles).map(v=>v.type); 
-            const possible = missionPool.filter(m=>{
-                let t=[...owned];
-                return m.req.every(r=>{
-                    let i=t.indexOf(r); 
-                    if(i>-1){t.splice(i,1); return true;} 
-                    return false;
-                });
+            let possible = missionPool.filter(m=>{
+                if(forceType !== "rand" && m.t !== forceType) return false;
+                if(m.minLvl > lvl) return false;
+                let t=[...owned]; return m.req.every(r=>{ let i=t.indexOf(r); if(i>-1){t.splice(i,1); return true;} return false; }); 
             }); 
+            if(!possible.length && forceType !== "rand") possible = missionPool.filter(m => m.t === "Mülltonnenbrand");
             if(!possible.length) return; 
             
             const m = possible[Math.floor(Math.random()*possible.length)]; 
             const base = cityLocations[Math.floor(Math.random()*cityLocations.length)]; 
-            const lat = base.lat + (Math.random()-0.5)*0.003;
-            const lng = base.lng + (Math.random()-0.5)*0.003; 
+            const lat = base.lat + (Math.random()-0.5)*0.003, lng = base.lng + (Math.random()-0.5)*0.003; 
             const street = base.n + " " + (Math.floor(Math.random()*50)+1); 
             
-            let marker=null; 
-            if(map) marker=L.circleMarker([lat,lng],{color:'red',radius:10}).addTo(map); 
+            let marker=null; if(map) marker=L.circleMarker([lat,lng],{color:'red',radius:8}).addTo(map); 
             activeMissions.push({...m, id:Math.random(), marker, processing:false, addr:street, lat, lng}); 
-            
-            playSound('alarm'); 
-            updateUI(); 
+            if(forceType === "rand") playSound('alarm'); updateUI(); 
+        }
+
+        function getRank(x) { let r="Azubi"; for(let i=0; i<ranks.length; i++) { if(x >= ranks[i].xp) r=ranks[i].n; } return r; }
+
+        function triggerAAO(id) {
+            const m = activeMissions.find(x => x.id === id); if (!m || m.processing) return;
+            let tempReq = [...m.req], autoSelected = [], available = Object.keys(vehicles).filter(v => vehicles[v].status === 1 || vehicles[v].status === 2);
+            for (let reqType of tempReq) {
+                let foundIdx = available.findIndex(v => vehicles[available[v] || v].type === reqType);
+                if (foundIdx > -1) { autoSelected.push(available[foundIdx]); available.splice(foundIdx, 1); } 
+                else { alert(`AAO: Kein freies [${reqType}]!`); return; }
+            }
+            selectedMissionId = id; selectedVehicles = autoSelected; updateUI(); executeMission();
         }
 
         function updateUI() { 
             document.getElementById('money-count').innerText=Math.floor(money).toLocaleString(); 
             document.getElementById('lvl-display').innerText=lvl; 
             document.getElementById('m-progress').innerText=`${doneMissions}/${lvl*lvlStep}`; 
+            document.getElementById('xp-display').innerText=xp.toLocaleString();
+            document.getElementById('rank-display').innerText=getRank(xp);
             
-            const area=document.getElementById('mission-area'); 
-            area.innerHTML=""; 
-            
+            const area=document.getElementById('mission-area'); area.innerHTML=""; 
             activeMissions.forEach(m=>{
-                const card=document.createElement('div');
-                card.className=`m-card ${selectedMissionId===m.id ? 'selected' : ''} ${m.processing ? 'processing' : ''}`; 
-                const tags=m.req.map(r=>`<span class="req-tag ${r==='RTW'||r==='NEF'?'med':''}">${r}</span>`).join(""); 
-                card.innerHTML=`
-                    <div style="display:flex;justify-content:space-between;">
-                        <div><span class="m-addr">📍 ${m.addr}</span><span class="m-title">${m.t}</span></div>
-                        <span class="m-reward">+${Math.floor(m.reward*diffMult)}€</span>
-                    </div>
-                    <div style="margin-top:8px;">${tags}</div>
-                `; 
-                card.onclick=()=>{selectedMissionId=m.id; updateUI(); if(map) map.panTo([m.lat,m.lng]);}; 
-                area.appendChild(card);
-            }); 
-            renderGarageColors(); 
+                const card=document.createElement('div'); card.className=`m-card ${selectedMissionId===m.id ? 'selected' : ''} ${m.processing ? 'processing' : ''}`; 
+                const tags=m.req.map(r=>{ let c=""; if(r==="RTW"||r==="NEF"||r==="LNA"||r==="OrgL") c="med"; if(r==="FuStW"||r==="SEK"||r==="Kripo") c="pol"; if(r==="RTH") c="rth"; return `<span class="req-tag ${c}">${r}</span>`; }).join(""); 
+                card.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;"><div><span class="m-addr">📍 ${m.addr}</span><span class="m-title">${m.t}</span></div><span class="m-reward">+${Math.floor(m.reward*diffMult)}€</span></div><div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:8px;"><div>${tags}</div><button class="btn-aao" onclick="triggerAAO(${m.id}); event.stopPropagation();">AAO</button></div>`; 
+                card.onclick=()=>{selectedMissionId=m.id; updateUI(); if(map) map.panTo([m.lat,m.lng]);}; area.appendChild(card);
+            }); renderGarageColors(); 
         }
 
         function renderGarage() { 
-            const g=document.getElementById('garage'); 
-            g.innerHTML=""; 
+            const g=document.getElementById('garage'); g.innerHTML=""; 
             Object.keys(vehicles).sort().forEach(v=>{
-                const b=document.createElement('button');
-                b.className="v-btn"; b.id="btn-"+v; 
-                b.innerHTML=`${v}<br>${vehicles[v].type}`; 
-                b.onclick=()=>{
-                    if(vehicles[v].status===2 || vehicles[v].status===1){
-                        let i=selectedVehicles.indexOf(v);
-                        if(i>-1) selectedVehicles.splice(i,1); else selectedVehicles.push(v);
-                        updateUI();
-                    }
-                }; 
+                let type = vehicles[v].type;
+                if(currentGarageTab !== 'ALL' && catMap[type] !== currentGarageTab) return;
+                
+                const b=document.createElement('button'); b.className="v-btn"; b.id="btn-"+v; b.innerHTML=`<span>${type}</span>${v}`; 
+                b.onclick=()=>{ if(vehicles[v].status===2 || vehicles[v].status===1){ let i=selectedVehicles.indexOf(v); if(i>-1) selectedVehicles.splice(i,1); else selectedVehicles.push(v); updateUI(); } }; 
                 g.appendChild(b);
             }); 
+            renderGarageColors();
         }
 
         function renderGarageColors() { 
             Object.keys(vehicles).forEach(v=>{
-                const b=document.getElementById('btn-'+v);
-                if(!b) return; 
-                let s=vehicles[v].status; 
-                b.style.background=s===3?'var(--s3)':s===4?'var(--s4)':s===1?'var(--s1)':'#232731'; 
-                b.style.border=selectedVehicles.includes(v)?"2px solid white":"1px solid #383e4d"; 
-                b.style.color=s===3?'#000':'#fff';
+                const b=document.getElementById('btn-'+v); if(!b) return; let s=vehicles[v].status; 
+                if(s===1) b.style.background = 'var(--s1)'; else if(s===3) b.style.background = 'var(--s3)'; else if(s===4) b.style.background = 'var(--s4)'; else if(s===7) b.style.background = 'var(--s7)'; else if(s===8) b.style.background = 'var(--s8)'; else b.style.background = '#232731';
+                b.style.border=selectedVehicles.includes(v)?"2px solid white":"1px solid #383e4d"; b.style.color=(s===3||s===7)?'#000':'#fff';
             }); 
         }
 
-        function animateVehicle(s,e,d,c) { 
-            if(!map) return c(); 
-            let vM=L.circleMarker([s.lat,s.lng],{radius:5,color:'#42a5f5',fillOpacity:1}).addTo(map); 
+        function getBase(type) {
+            if(type==="FuStW"||type==="Kripo"||type==="SEK") return LOC.POL;
+            if(type==="RTH") return LOC.RTH;
+            return LOC.FW; 
+        }
+
+        async function getRoute(start, end) {
+            try {
+                let res = await fetch(`https://router.project-osrm.org/route/v1/driving/${start.lng},${start.lat};${end.lng},${end.lat}?geometries=geojson`);
+                let data = await res.json();
+                if(data.routes && data.routes[0]) return data.routes[0].geometry.coordinates;
+            } catch(e) { console.warn("Routing Fallback"); }
+            return [[start.lng, start.lat], [end.lng, end.lat]]; 
+        }
+
+        async function animateVehicle(start, end, duration, callback, isRth) { 
+            if(!map) return callback(); 
+            let vM=L.circleMarker([start.lat,start.lng],{radius:isRth?6:4,color:isRth?'#ff9800':'#fff',fillOpacity:1}).addTo(map); 
+            
+            let path = [[start.lng, start.lat], [end.lng, end.lat]];
+            if(!isRth) {
+                let routePoints = await getRoute(start, end);
+                if(routePoints && routePoints.length > 0) path = routePoints;
+            }
+
             let st=performance.now(); 
-            function step(now){
-                let p=(now-st)/d;
-                if(p>1) p=1;
-                vM.setLatLng([s.lat+(e.lat-s.lat)*p, s.lng+(e.lng-s.lng)*p]);
-                if(p<1) requestAnimationFrame(step);
-                else { map.removeLayer(vM); c(); }
-            } 
-            requestAnimationFrame(step); 
+            function step(now){ 
+                let p=(now-st)/duration; if(p>1) p=1; 
+                let totalSegments = path.length - 1; let exactSegment = p * totalSegments; let idx = Math.floor(exactSegment); let segmentP = exactSegment - idx;
+
+                if (idx >= totalSegments) { vM.setLatLng([path[totalSegments][1], path[totalSegments][0]]); } 
+                else { let p1 = path[idx]; let p2 = path[idx+1]; let curLng = p1[0] + (p2[0] - p1[0]) * segmentP; let curLat = p1[1] + (p2[1] - p1[1]) * segmentP; vM.setLatLng([curLat, curLng]); }
+                if(p<1) requestAnimationFrame(step); else { map.removeLayer(vM); callback(); } 
+            } requestAnimationFrame(step); 
         }
 
         function executeMission() { 
             if(!selectedMissionId||!selectedVehicles.length) return; 
             const m = activeMissions.find(x=>x.id===selectedMissionId); 
             const sentTypes = selectedVehicles.map(v=>vehicles[v].type); 
-            let tS=[...sentTypes], mis=[]; 
-            m.req.forEach(r=>{ let i=tS.indexOf(r); if(i>-1) tS.splice(i,1); else mis.push(r); }); 
-            if(mis.length){ alert("Fahrzeuge fehlen: "+mis.join(", ")); return; } 
+            let tS=[...sentTypes], mis=[]; m.req.forEach(r=>{ let i=tS.indexOf(r); if(i>-1) tS.splice(i,1); else mis.push(r); }); 
+            if(mis.length){ alert("Fehlende Fahrzeuge: "+mis.join(", ")); return; } 
             
-            m.processing=true; 
-            const curSent=[...selectedVehicles]; 
-            selectedVehicles=[]; 
-            selectedMissionId=null; 
+            m.processing=true; const curSent=[...selectedVehicles]; selectedVehicles=[]; selectedMissionId=null; 
             
-            curSent.forEach(v=>vehicles[v].status=3); 
-            playSound('out'); 
-            updateUI(); 
-            
-            curSent.forEach(v => animateVehicle(STATION_POS, {lat:m.lat, lng:m.lng}, 3000, ()=>{})); 
+            let rdVehicles = curSent.filter(v => vehicles[v].type === "RTW" || vehicles[v].type === "NEF");
+            let otherVehicles = curSent.filter(v => vehicles[v].type !== "RTW" && vehicles[v].type !== "NEF");
+
+            curSent.forEach(v=>vehicles[v].status=3); playSound('out'); updateUI(); 
+            curSent.forEach(v => { let t = vehicles[v].type; animateVehicle(getBase(t), {lat:m.lat, lng:m.lng}, t==="RTH"?2000:4500, ()=>{}, t==="RTH"); }); 
             
             setTimeout(()=>{
-                if(!gameRunning) return; 
-                curSent.forEach(v=>{ if(vehicles[v]) vehicles[v].status=4; }); 
-                updateUI(); 
-                
+                if(!gameRunning) return; curSent.forEach(v=>{ if(vehicles[v]) vehicles[v].status=4; }); updateUI(); 
                 setTimeout(()=>{
-                    if(!gameRunning) return; 
-                    if(m.marker && map) map.removeLayer(m.marker); 
-                    activeMissions = activeMissions.filter(x=>x.id!==m.id); 
-                    money += Math.floor(m.reward*diffMult); 
-                    doneMissions++; 
-                    if(doneMissions >= lvl*lvlStep){ doneMissions=0; lvl++; alert("Level Up!"); } 
+                    if(!gameRunning) return; if(m.marker && map) map.removeLayer(m.marker); activeMissions = activeMissions.filter(x=>x.id!==m.id); 
+                    money += Math.floor(m.reward*diffMult); doneMissions++; xp += Math.floor(m.reward/10);
+                    if(doneMissions >= lvl*lvlStep && lvl < 20){ doneMissions=0; lvl++; alert("LEVEL UP: " + lvl); } 
                     
-                    curSent.forEach(v=>{ if(vehicles[v]) vehicles[v].status=1; }); 
-                    updateUI(); 
+                    curSent.forEach(v => {
+                        let t = vehicles[v].type;
+                        if(t === "RTW" || t === "NEF" || t === "RTH") {
+                            vehicles[v].status=7; animateVehicle({lat:m.lat, lng:m.lng}, LOC.HOSP, t==="RTH"?2000:4500, ()=>{}, t==="RTH");
+                        } else {
+                            vehicles[v].status=1; animateVehicle({lat:m.lat, lng:m.lng}, getBase(t), 4500, ()=>{});
+                        }
+                    }); updateUI(); 
                     
                     setTimeout(()=>{
                         if(!gameRunning) return; 
-                        curSent.forEach(v=>{ if(vehicles[v]) vehicles[v].status=2; }); 
-                        playSound('home'); 
-                        updateUI(); 
-                        saveGame();
-                    },5000);
-                }, m.duration);
-            },3000); 
+                        curSent.forEach(v => {
+                            let t = vehicles[v].type;
+                            if(t === "RTW" || t === "NEF" || t === "RTH") {
+                                vehicles[v].status=8;
+                                setTimeout(()=>{
+                                    if(!gameRunning) return; vehicles[v].status=1;
+                                    animateVehicle(LOC.HOSP, getBase(t), t==="RTH"?2000:4500, ()=>{}, t==="RTH"); updateUI();
+                                    setTimeout(()=>{ if(!gameRunning) return; vehicles[v].status=2; playSound('home'); updateUI(); saveGame(); }, t==="RTH"?2000:4500);
+                                }, 4000);
+                            } else { vehicles[v].status=2; playSound('home'); updateUI(); saveGame(); }
+                        }); updateUI();
+                    },4500); 
+                }, m.dur); 
+            },4500); 
+        }
+
+        function showAdminLogin() { document.getElementById('set-mod').style.display = 'none'; document.getElementById('admin-pw').value = ""; document.getElementById('admin-login-mod').style.display = 'flex'; }
+        function checkAdmin() { if(document.getElementById('admin-pw').value === 'Notruf112') { document.getElementById('admin-login-mod').style.display = 'none'; document.getElementById('admin-panel-mod').style.display = 'flex'; } else { alert('Falsches Passwort!'); } }
+        function adminAddMoney(amount) { money += amount; updateUI(); saveGame(); alert(amount.toLocaleString() + ' € hinzugefügt!'); }
+        function adminLevelUp() { if(lvl < 20) { lvl++; xp += 5000; updateUI(); saveGame(); alert('Level Up auf ' + lvl + '!'); } else { alert('Max Level (20) erreicht.'); } }
+        
+        function adminUnlockAll() {
+            shopItems.forEach(item => {
+                let currentCount = Object.values(vehicles).filter(v => v.type === item.t).length;
+                let needed = item.max - currentCount;
+                for(let i=0; i<needed; i++) {
+                    let pr="10/";
+                    if(item.t==="LF") pr="40/"; else if(item.t==="DLK") pr="30/"; else if(item.t==="RW") pr="61/"; else if(item.t==="RTW") pr="71/"; else if(item.t==="NEF") pr="76/"; else if(item.t==="KEF") pr="65/"; else if(item.t==="FuStW") pr="11/"; else if(item.t==="TLF") pr="21/"; else if(item.t==="GW-G") pr="52/"; else if(item.t==="Dekon-P") pr="67/"; else if(item.t==="SEK") pr="12/"; else if(item.t==="LNA"||item.t==="OrgL") pr="70/"; else if(item.t==="MTW") pr="14/"; else if(item.t==="Kripo") pr="15/"; else if(item.t==="RTH") pr="CH/";
+                    let id=pr+(Object.values(vehicles).filter(v=>v.type===item.t).length+1);
+                    vehicles[id]={type:item.t,status:2};
+                }
+            });
+            renderGarage(); updateUI(); saveGame(); alert('Alle Fahrzeuge in der Garage!');
         }
 
         function openShop() { 
-            const list=document.getElementById('shop-list'); 
-            list.innerHTML=""; 
+            const list=document.getElementById('shop-list'); list.innerHTML=""; 
+            let visibleCount = 0;
             shopItems.forEach(i=>{
                 const c = Object.values(vehicles).filter(v=>v.type===i.t).length; 
                 const b = c>=i.max, l = lvl<i.l; 
-                list.innerHTML+=`
-                    <div class="shop-item" style="opacity:${l?0.5:1}">
-                        <div><b>${i.n}</b><br><small>${i.p.toLocaleString()}€ ${l?'(Ab Lvl '+i.l+')':''}</small></div>
-                        <button class="btn ${b?'btn-gray':l?'btn-red':'btn-green'}" style="width:auto;padding:8px 12px;margin:0;" ${b||l||money<i.p?'disabled':''} onclick="buyV('${i.t}',${i.p},${i.max})">${b?'GEKAUFT':l?'🔒':'KAUFEN'}</button>
-                    </div>
-                `;
+                if(b || i.l > lvl + 3) return; 
+                visibleCount++;
+                list.innerHTML+=`<div class="shop-item" style="opacity:${l?0.5:1}"><div><b>${i.n}</b><br><small>${i.p.toLocaleString()}€ ${l?'(Ab Lvl '+i.l+')':''}</small></div><button class="btn ${l?'btn-red':'btn-green'}" style="width:auto;padding:8px 12px;margin:0;" ${l||money<i.p?'disabled':''} onclick="buyV('${i.t}',${i.p},${i.max})">${l?'🔒':'KAUFEN'}</button></div>`;
             }); 
+            if(visibleCount === 0) list.innerHTML = "<div style='text-align:center; padding: 20px; color:#aaa;'>Alles gekauft oder max. Level erreicht!</div>";
             document.getElementById('shop-mod').style.display='flex'; 
         }
 
         function buyV(t,p,max) { 
-            money-=p; 
-            let pr=(t==="LF"?"40/":t==="DLK"?"30/":t==="RW"?"61/":t==="RTW"?"71/":t==="NEF"?"76/":t==="KEF"?"65/":"10/"); 
-            let id=pr+(Object.values(vehicles).filter(v=>v.type===t).length+1); 
-            vehicles[id]={type:t,status:2}; 
+            money-=p; let pr="10/";
+            if(t==="LF") pr="40/"; else if(t==="DLK") pr="30/"; else if(t==="RW") pr="61/"; else if(t==="RTW") pr="71/"; else if(t==="NEF") pr="76/"; else if(t==="KEF") pr="65/"; else if(t==="FuStW") pr="11/"; else if(t==="TLF") pr="21/"; else if(t==="GW-G") pr="52/"; else if(t==="Dekon-P") pr="67/"; else if(t==="SEK") pr="12/"; else if(t==="LNA"||t==="OrgL") pr="70/"; else if(t==="MTW") pr="14/"; else if(t==="Kripo") pr="15/"; else if(t==="RTH") pr="CH/";
+            let id=pr+(Object.values(vehicles).filter(v=>v.type===t).length+1); vehicles[id]={type:t,status:2}; 
             saveGame(); renderGarage(); updateUI(); openShop(); 
         }
 
         function openMissions() { 
-            const list=document.getElementById('missions-list'); 
-            list.innerHTML=""; 
+            const list=document.getElementById('missions-list'); list.innerHTML=""; 
             let sM=[...missionPool].sort((a,b)=>a.minLvl-b.minLvl); 
             sM.forEach(m=>{
                 const l = lvl < m.minLvl; 
-                const tags = m.req.map(r=>`<span class="req-tag ${r==='RTW'||r==='NEF'?'med':''}">${r}</span>`).join(""); 
-                list.innerHTML+=`
-                    <div class="shop-item" style="flex-direction: column; align-items: flex-start; opacity:${l?0.4:1}">
-                        <div style="display:flex; justify-content:space-between; width:100%; margin-bottom: 8px;">
-                            <b>${m.t} ${l?'🔒':''}</b>
-                            <span style="color:var(--s2); font-weight:bold;">${Math.floor(m.reward*diffMult)} €</span>
-                        </div>
-                        <div style="font-size: 0.8em; margin-bottom: 8px; font-weight: bold;">
-                            ${l ? `<span style="color:var(--s4)">Ab Level ${m.minLvl}</span>` : `<span style="color:var(--s2)">Aktiv</span>`}
-                        </div>
-                        <div>${tags}</div>
-                    </div>
-                `;
-            }); 
-            document.getElementById('missions-mod').style.display='flex'; 
+                const tags = m.req.map(r=>{ let c=""; if(r==="RTW"||r==="NEF"||r==="LNA"||r==="OrgL") c="med"; if(r==="FuStW"||r==="SEK"||r==="Kripo") c="pol"; if(r==="RTH") c="rth"; return `<span class="req-tag ${c}">${r}</span>`; }).join(""); 
+                list.innerHTML+=`<div class="shop-item" style="flex-direction: column; align-items: flex-start; opacity:${l?0.4:1}"><div style="display:flex; justify-content:space-between; width:100%; margin-bottom: 4px;"><b>${m.t} ${l?'🔒':''}</b><span style="color:var(--s2); font-weight:bold;">${Math.floor(m.reward*diffMult)} €</span></div><div style="font-size: 0.75em; margin-bottom: 6px; color:#bbb;">${l ? `Ab Level ${m.minLvl}` : `Aktiv`}</div><div>${tags}</div></div>`;
+            }); document.getElementById('missions-mod').style.display='flex'; 
         }
 
-        function saveGame() { try{localStorage.setItem(SAVE_KEY, JSON.stringify({money,lvl,vehicles,doneMissions,diff:diffMult,step:lvlStep,freq:missionFreq}));}catch(e){} }
-        
-        function goHome() { 
-            gameRunning=false; saveGame(); 
-            document.getElementById('start-overlay').style.display='flex'; 
-            try{
-                if(localStorage.getItem(SAVE_KEY)){
-                    document.getElementById('btn-continue').style.display='block';
-                    document.getElementById('btn-divider').style.display='block';
-                }
-            }catch(e){} 
-        }
-        
+        function saveGame() { try{localStorage.setItem(SAVE_KEY, JSON.stringify({money,lvl,xp,vehicles,doneMissions,diff:diffMult,step:lvlStep,freq:missionFreq,h:gameHour,m:gameMin}));}catch(e){} }
+        function goHome() { gameRunning=false; saveGame(); document.getElementById('start-overlay').style.display='flex'; try{if(localStorage.getItem(SAVE_KEY)){document.getElementById('btn-continue').style.display='block';document.getElementById('btn-divider').style.display='block';}}catch(e){} }
         function resetGame() { if(confirm("Spielstand löschen?")){localStorage.clear();location.reload();} }
         function updateFreq(v) { missionFreq=parseInt(v); document.getElementById('freq-val').innerText=v; }
-        
-        function toggleSound() { 
-            soundEnabled=!soundEnabled; 
-            const b=document.getElementById('sound-btn'); 
-            b.innerText="SOUND: "+(soundEnabled?"AN":"AUS"); 
-            b.className="btn "+(soundEnabled?"btn-green":"btn-red"); 
-        }
+        function toggleSound() { soundEnabled=!soundEnabled; const b=document.getElementById('sound-btn'); b.innerText="SOUND: "+(soundEnabled?"AN":"AUS"); b.className="btn "+(soundEnabled?"btn-green":"btn-red"); }
     </script>
 </body>
 </html>
